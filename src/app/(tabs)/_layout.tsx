@@ -1,0 +1,108 @@
+import { Redirect } from "expo-router";
+import {
+  Tabs,
+  TabList,
+  TabTrigger,
+  TabSlot,
+  TabTriggerSlotProps,
+} from "expo-router/ui";
+import { Pressable, View } from "react-native";
+import {
+  Home,
+  Compass,
+  ScanLine,
+  Refrigerator,
+  UserRound,
+  LucideIcon,
+} from "lucide-react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useCook } from "@/state/store";
+import { useTheme } from "@/theme/useTheme";
+import { T } from "@/components/ui";
+function Tab({
+  icon: Icon,
+  label,
+  center = false,
+  isFocused,
+  ...props
+}: TabTriggerSlotProps & {
+  icon: LucideIcon;
+  label: string;
+  center?: boolean;
+}) {
+  const c = useTheme();
+  return (
+    <Pressable
+      {...props}
+      accessibilityRole="tab"
+      accessibilityLabel={label}
+      accessibilityState={{ selected: isFocused }}
+      aria-selected={isFocused}
+      style={{
+        flex: 1,
+        alignItems: "center",
+        gap: 5,
+        paddingVertical: 8,
+        minHeight: 60,
+      }}
+    >
+      <View
+        style={{
+          backgroundColor: center ? c.primary : "transparent",
+          padding: center ? 13 : 5,
+          borderRadius: 22,
+          marginTop: center ? -15 : 0,
+        }}
+      >
+        <Icon
+          size={center ? 27 : 23}
+          color={center ? c.onPrimary : isFocused ? c.primary : c.muted}
+          strokeWidth={isFocused ? 2.5 : 1.8}
+        />
+      </View>
+      <T size={11} bold={isFocused} muted={!isFocused}>
+        {label}
+      </T>
+    </Pressable>
+  );
+}
+export default function Layout() {
+  const onboarded = useCook((s) => s.onboarded);
+  const c = useTheme();
+  const insets = useSafeAreaInsets();
+  if (!onboarded) return <Redirect href="/onboarding" />;
+  return (
+    <Tabs style={{ flex: 1, backgroundColor: c.bg }}>
+      <TabSlot style={{ flex: 1 }} />
+      <TabList
+        style={{
+          backgroundColor: c.surface,
+          borderTopWidth: 1,
+          borderColor: c.border,
+          paddingTop: 10,
+          paddingBottom: Math.max(insets.bottom, 8),
+          paddingHorizontal: 12,
+          width: "100%",
+          maxWidth: 760,
+          alignSelf: "center",
+        }}
+      >
+        <TabTrigger name="home" href="/" asChild>
+          <Tab icon={Home} label="Home" />
+        </TabTrigger>
+        <TabTrigger name="discover" href="/discover" asChild>
+          <Tab icon={Compass} label="Discover" />
+        </TabTrigger>
+        <TabTrigger name="scan" href="/scan" asChild>
+          <Tab icon={ScanLine} label="Scan" center />
+        </TabTrigger>
+        <TabTrigger name="pantry" href="/pantry" asChild>
+          <Tab icon={Refrigerator} label="Pantry" />
+        </TabTrigger>
+        <TabTrigger name="profile" href="/profile" asChild>
+          <Tab icon={UserRound} label="You" />
+        </TabTrigger>
+      </TabList>
+    </Tabs>
+  );
+}

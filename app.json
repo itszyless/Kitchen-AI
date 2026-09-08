@@ -1,0 +1,49 @@
+{
+  "expo": {
+    "name": "Cook",
+    "slug": "cook",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "icon": "./assets/images/cook-placeholder.png",
+    "scheme": "cook",
+    "userInterfaceStyle": "automatic",
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/images/cook-placeholder.png",
+        "backgroundColor": "#254F3B"
+      },
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "output": "single",
+      "favicon": "./assets/images/cook-placeholder.png"
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#FAF8F2",
+          "image": "./assets/images/cook-placeholder.png",
+          "imageWidth": 76
+        }
+      ],
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Allow Cook to scan food barcodes.",
+          "recordAudioAndroid": false
+        }
+      ],
+      "expo-localization",
+      "expo-secure-store"
+    ],
+    "experiments": {
+      "typedRoutes": true,
+      "reactCompiler": true
+    }
+  }
+}

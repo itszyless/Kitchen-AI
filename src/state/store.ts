@@ -1,0 +1,130 @@
+import { create } from "zustand";
+import { createJSONStorage, persist } from "zustand/middleware";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { getLocales } from "expo-localization";
+import {
+  PantryItem,
+  Preferences,
+  RecipeIngredient,
+  ShoppingItem,
+} from "@/domain/types";
+import { mergeShopping } from "@/domain/matching";
+export const initialPreferences: Preferences = {
+  country: getLocales()[0]?.regionCode || "US",
+  allergies: [],
+  diet: "Anything",
+  skill: "Getting started",
+  minutes: 30,
+  household: 2,
+  dislikes: [],
+};
+type CookState = {
+  hydrated: boolean;
+  storageError: boolean;
+  onboarded: boolean;
+  preferences: Preferences;
+  pantry: PantryItem[];
+  saved: string[];
+  shopping: ShoppingItem[];
+  theme: "system" | "light" | "dark";
+  completed: number;
+  setHydrated: () => void;
+  setStorageError: () => void;
+  updatePreferences: (p: Partial<Preferences>) => void;
+  finishOnboarding: () => void;
+  addPantry: (items: PantryItem[]) => void;
+  updatePantry: (id: string, p: Partial<PantryItem>) => void;
+  removePantry: (id: string) => void;
+  toggleSaved: (id: string) => void;
+  addShopping: (items: RecipeIngredient[]) => void;
+  toggleShopping: (index: number) => void;
+  setTheme: (t: CookState["theme"]) => void;
+  complete: () => void;
+};
+export const useCook = create<CookState>()(
+  persist(
+    (set) => ({
+      hydrated: false,
+      storageError: false,
+      onboarded: false,
+      preferences: initialPreferences,
+      pantry: [],
+      saved: [],
+      shopping: [],
+      theme: "system",
+      completed: 0,
+      setHydrated: () => set({ hydrated: true }),
+      setStorageError: () => set({ storageError: true, hydrated: true }),
+      updatePreferences: (p) =>
+        set((s) => ({ preferences: { ...s.preferences, ...p } })),
+      finishOnboarding: () => set({ onboarded: true }),
+      addPantry: (items) =>
+        set((s) => {
+          const pantry = s.pantry.map((i) => ({ ...i }));
+          for (const item of items) {
+            const old = pantry.find(
+              (i) =>
+                i.ingredientId === item.ingredientId &&
+                i.unit === item.unit &&
+                i.expires === item.expires,
+            );
+            if (old) old.quantity += item.quantity;
+            else pantry.push(item);
+          }
+          return { pantry };
+        }),
+      updatePantry: (id, p) =>
+        set((s) => ({
+          pantry: s.pantry.map((i) =>
+            i.id === id ? { ...i, ...p, id: i.id } : i,
+          ),
+        })),
+      removePantry: (id) =>
+        set((s) => ({ pantry: s.pantry.filter((i) => i.id !== id) })),
+      toggleSaved: (id) =>
+        set((s) => ({
+          saved: s.saved.includes(id)
+            ? s.saved.filter((i) => i !== id)
+            : [...s.saved, id],
+        })),
+      addShopping: (items) =>
+        set((s) => ({ shopping: mergeShopping(s.shopping, items) })),
+      toggleShopping: (index) =>
+        set((s) => ({
+          shopping: s.shopping.map((i, n) =>
+            n === index ? { ...i, checked: !i.checked } : i,
+          ),
+        })),
+      setTheme: (theme) => set({ theme }),
+      complete: () => set((s) => ({ completed: s.completed + 1 })),
+    }),
+    {
+      name: "cook-local-v1",
+      version: 1,
+      storage: createJSONStorage(() => ({
+        getItem: AsyncStorage.getItem,
+        setItem: async (k, v) => {
+          try {
+            await AsyncStorage.setItem(k, v);
+          } catch {
+            useCook.getState().setStorageError();
+          }
+        },
+        removeItem: AsyncStorage.removeItem,
+      })),
+      partialize: (s) => ({
+        onboarded: s.onboarded,
+        preferences: s.preferences,
+        pantry: s.pantry,
+        saved: s.saved,
+        shopping: s.shopping,
+        theme: s.theme,
+        completed: s.completed,
+      }),
+      onRehydrateStorage: () => (state, error) => {
+        if (error) useCook.getState().setStorageError();
+        else state?.setHydrated();
+      },
+    },
+  ),
+);
