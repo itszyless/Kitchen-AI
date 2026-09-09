@@ -48,15 +48,17 @@ function Tab({
     >
       <View
         style={{
-          backgroundColor: center ? c.primary : "transparent",
+          backgroundColor: center ? c.ink : isFocused ? c.soft : "transparent",
           padding: center ? 13 : 5,
           borderRadius: 22,
+          borderBottomWidth: 0,
+          borderBottomColor: c.primary,
           marginTop: center ? -15 : 0,
         }}
       >
         <Icon
           size={center ? 27 : 23}
-          color={center ? c.onPrimary : isFocused ? c.primary : c.muted}
+          color={center ? "#FFFFFF" : isFocused ? c.primary : c.muted}
           strokeWidth={isFocused ? 2.5 : 1.8}
         />
       </View>
@@ -76,14 +78,14 @@ export default function Layout() {
       <TabSlot style={{ flex: 1 }} />
       <TabList
         style={{
-          backgroundColor: c.surface,
+          backgroundColor: c.nav,
           borderTopWidth: 1,
           borderColor: c.border,
           paddingTop: 10,
           paddingBottom: Math.max(insets.bottom, 8),
           paddingHorizontal: 12,
           width: "100%",
-          maxWidth: 760,
+          maxWidth: 600,
           alignSelf: "center",
         }}
       >
@@ -100,7 +102,7 @@ export default function Layout() {
           <Tab icon={Refrigerator} label="Pantry" />
         </TabTrigger>
         <TabTrigger name="profile" href="/profile" asChild>
-          <Tab icon={UserRound} label="You" />
+          <Tab icon={UserRound} label="Profile" />
         </TabTrigger>
       </TabList>
     </Tabs>

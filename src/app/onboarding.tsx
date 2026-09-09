@@ -1,10 +1,20 @@
-import { brand } from "@/theme/tokens";
+import appIcon from "../../assets/images/app-icon.png";
 import { useState } from "react";
-import { View } from "react-native";
+import { View, Pressable, useWindowDimensions } from "react-native";
 import { Image } from "expo-image";
 import { router } from "expo-router";
-import { ArrowRight, Leaf } from "lucide-react-native";
-import { Screen, T, Button, Chip, Row, Panel, Back } from "@/components/ui";
+import { ArrowLeft, Check, ShieldCheck } from "lucide-react-native";
+import Animated, { FadeIn, useReducedMotion } from "react-native-reanimated";
+import * as Haptics from "expo-haptics";
+import {
+  Screen,
+  T,
+  Button,
+  Chip,
+  Row,
+  IconButton,
+  Progress,
+} from "@/components/ui";
 import { useCook } from "@/state/store";
 import { useTheme } from "@/theme/useTheme";
 import { allergens } from "@/domain/types";
@@ -16,205 +26,313 @@ export default function Onboarding() {
   const update = useCook((s) => s.updatePreferences);
   const finish = useCook((s) => s.finishOnboarding);
   const c = useTheme();
+  const { height } = useWindowDimensions();
+  const reduced = useReducedMotion();
+  const next = () => {
+    void Haptics.selectionAsync().catch(() => {});
+    setStep((s) => s + 1);
+  };
   const done = (scan: boolean) => {
     finish();
     router.replace(scan ? "/scan" : "/");
   };
+  const titles = [
+    "Dinner starts here.",
+    "Anything off the menu?",
+    "How do you like to eat?",
+    "How much time do you have?",
+    "At home in the kitchen?",
+    "Who are you cooking for?",
+    "Where’s your kitchen?",
+  ];
+  const subtitles = [
+    "Turn the food you have into a meal you’ll love.",
+    "Choose every allergy we should exclude.",
+    "Recipe ideas that fit the way you eat.",
+    "Think about an ordinary weeknight.",
+    "We’ll help as much as you need.",
+    "Choose your usual number of servings.",
+    "Your region helps us find familiar ingredients.",
+  ];
+  const options =
+    step === 2
+      ? ["Anything", "Vegetarian", "Vegan"]
+      : step === 3
+        ? ["15 minutes", "30 minutes", "60 minutes"]
+        : step === 4
+          ? ["Getting started", "Comfortable", "Confident"]
+          : step === 5
+            ? ["1 person", "2 people", "3 people", "4 people", "6 people"]
+            : [];
+  const chosen = (n: number) =>
+    step === 2
+      ? p.diet === options[n]
+      : step === 3
+        ? p.minutes === [15, 30, 60][n]
+        : step === 4
+          ? p.skill === options[n]
+          : p.household === [1, 2, 3, 4, 6][n];
+  const choose = (n: number) => {
+    void Haptics.selectionAsync().catch(() => {});
+    if (step === 2)
+      update({ diet: (["Anything", "Vegetarian", "Vegan"] as const)[n] });
+    if (step === 3) update({ minutes: [15, 30, 60][n] });
+    if (step === 4)
+      update({
+        skill: (["Getting started", "Comfortable", "Confident"] as const)[n],
+      });
+    if (step === 5) update({ household: [1, 2, 3, 4, 6][n] });
+  };
   return (
-    <Screen>
-      {step > 0 ? (
-        <Back title="Your kitchen, your way" />
-      ) : (
-        <Row>
-          <Leaf color={c.primary} />
-          <T bold size={28}>
-            {brand.name}
-          </T>
-        </Row>
-      )}
-      <Row>
-        {[0, 1, 2, 3].map((n) => (
-          <View
-            key={n}
-            style={{
-              height: 4,
-              flex: 1,
-              borderRadius: 5,
-              backgroundColor: n <= step ? c.primary : c.border,
-            }}
-          />
-        ))}
-      </Row>
-      {step === 0 ? (
-        <>
-          <Image
-            source={recipes[1].image}
-            style={{ height: 300, borderRadius: 32 }}
-            contentFit="cover"
-          />
-          <T size={40} bold>
-            Less wondering.{String.fromCharCode(10)}More cooking.
-          </T>
-          <T muted size={18}>
-            Turn what you have into something you’ll love. A little inspiration,
-            a helping hand, and dinner is on.
-          </T>
-          <Button
-            label="Make it mine"
-            icon={ArrowRight}
-            onPress={() => setStep(1)}
-          />
-          <T size={12} muted>
-            No account needed. Your kitchen stays on this device for now.
-          </T>
-        </>
-      ) : null}
-      {step === 1 ? (
-        <>
-          <T size={34} bold>
-            First, what’s off the menu?
-          </T>
-          <T muted>
-            Choose every allergy we should exclude from recipe recommendations.
-          </T>
-          <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
-            {allergens.map((a) => (
-              <Chip
-                key={a}
-                label={a}
-                selected={p.allergies.includes(a)}
-                onPress={() => {
-                  setConfirmed(true);
-                  update({
-                    allergies: p.allergies.includes(a)
-                      ? p.allergies.filter((x) => x !== a)
-                      : [...p.allergies, a],
-                  });
-                }}
-              />
-            ))}
-            <Chip
-              label="No food allergies"
-              selected={confirmed && p.allergies.length === 0}
-              onPress={() => {
-                setConfirmed(true);
-                update({ allergies: [] });
-              }}
-            />
-          </View>
-          <Panel>
-            <T size={14}>
-              Always check ingredient labels and cross-contact risks yourself,
-              especially with serious allergies. Cook cannot guarantee that a
-              meal is allergen-free.
+    <Screen
+      style={{ flexGrow: 1, gap: 24, paddingBottom: 24 }}
+      footer={
+        step === 0 ? (
+          <>
+            <Button label="Get started" onPress={next} />
+            <T muted size={12} style={{ textAlign: "center" }}>
+              No account needed to start cooking.
             </T>
-          </Panel>
+          </>
+        ) : step === 6 ? (
+          <>
+            <Button label="Explore recipes" onPress={() => done(false)} />
+            <Button
+              label="Start with my pantry"
+              secondary
+              onPress={() => done(true)}
+            />
+          </>
+        ) : (
           <Button
             label="Continue"
-            disabled={!confirmed}
-            onPress={() => setStep(2)}
+            disabled={step === 1 && !confirmed}
+            onPress={next}
           />
-        </>
-      ) : null}
-      {step === 2 ? (
-        <>
-          <T size={34} bold>
-            Let’s find your kind of food.
-          </T>
-          <T bold>Your way of eating</T>
-          <Row style={{ flexWrap: "wrap" }}>
-            {(["Anything", "Vegetarian", "Vegan"] as const).map((d) => (
-              <Chip
-                key={d}
-                label={d}
-                selected={p.diet === d}
-                onPress={() => update({ diet: d })}
-              />
-            ))}
-          </Row>
-          <T bold>Most nights, I have…</T>
-          <Row>
-            {[15, 30, 60].map((m) => (
-              <Chip
-                key={m}
-                label={m + " min"}
-                selected={p.minutes === m}
-                onPress={() => update({ minutes: m })}
-              />
-            ))}
-          </Row>
-          <T bold>At home in the kitchen</T>
-          <Row style={{ flexWrap: "wrap" }}>
-            {(["Getting started", "Comfortable", "Confident"] as const).map(
-              (skill) => (
-                <Chip
-                  key={skill}
-                  label={skill}
-                  selected={p.skill === skill}
-                  onPress={() => update({ skill })}
-                />
-              ),
-            )}
-          </Row>
-          <T bold>Cooking for {p.household}</T>
-          <Row>
-            {[1, 2, 3, 4, 6].map((n) => (
-              <Chip
-                key={n}
-                label={String(n)}
-                selected={p.household === n}
-                onPress={() => update({ household: n })}
-              />
-            ))}
-          </Row>
-          <Button label="Nearly there" onPress={() => setStep(3)} />
-        </>
-      ) : null}
-      {step === 3 ? (
-        <>
-          <T size={36} bold>
-            You’re ready to Cook.
-          </T>
-          <T muted>
-            Start with your fridge, or find your next favorite recipe. It’s your
-            kitchen.
-          </T>
-          <T bold>Product region · {p.country}</T>
-          <T muted size={14}>
-            Suggested from your device region. No location tracking.
-          </T>
-          <Row style={{ flexWrap: "wrap" }}>
-            {[
-              ["AT", "Austria"],
-              ["DE", "Germany"],
-              ["US", "United States"],
-              ["GB", "United Kingdom"],
-              ["FR", "France"],
-              ["IT", "Italy"],
-            ].map(([code, name]) => (
-              <Chip
-                key={code}
-                label={name}
-                selected={p.country === code}
-                onPress={() => update({ country: code })}
-              />
-            ))}
-          </Row>
-          <Button label="Scan my fridge" onPress={() => done(true)} />
-          <Button
-            label="Explore recipes"
-            secondary
-            onPress={() => done(false)}
-          />
-        </>
-      ) : null}
+        )
+      }
+    >
       {step > 0 ? (
-        <Button
-          label="Previous step"
-          secondary
-          onPress={() => setStep((s) => s - 1)}
-        />
-      ) : null}
+        <Row>
+          <IconButton
+            icon={ArrowLeft}
+            label="Previous step"
+            onPress={() => setStep((s) => s - 1)}
+          />
+          <Progress value={(step / 6) * 100} />
+          <T size={12} muted>
+            {step} of 6
+          </T>
+        </Row>
+      ) : (
+        <Row style={{ justifyContent: "space-between" }}>
+          <T bold size={26} style={{ letterSpacing: -1.5 }}>
+            COOK
+          </T>
+          <Image
+            source={appIcon}
+            style={{ width: 42, height: 42, borderRadius: 12 }}
+          />
+        </Row>
+      )}
+      <Animated.View
+        key={step}
+        entering={reduced ? undefined : FadeIn.duration(180)}
+        style={{ flexGrow: 1, gap: 16 }}
+      >
+        {step === 0 ? (
+          <View style={{ flex: 1, justifyContent: "center", gap: 28 }}>
+            <View
+              style={{
+                height: Math.min(height * 0.43, 360),
+                marginHorizontal: 10,
+                borderRadius: 28,
+                overflow: "hidden",
+              }}
+            >
+              <Image
+                source={recipes[0].image}
+                contentFit="cover"
+                style={{ width: "100%", height: "100%" }}
+              />
+              <View
+                style={{
+                  position: "absolute",
+                  bottom: 16,
+                  left: 16,
+                  right: 16,
+                  padding: 15,
+                  borderRadius: 16,
+                  backgroundColor: "#FFFFFF",
+                }}
+              >
+                <T bold style={{ color: "#171719" }}>
+                  A little sunshine pasta
+                </T>
+                <T size={12} style={{ color: "#686870" }}>
+                  From what’s already in your kitchen.
+                </T>
+              </View>
+            </View>
+            <T bold size={38} style={{ textAlign: "center" }}>
+              What should I{String.fromCharCode(10)}cook today?
+            </T>
+            <T muted style={{ textAlign: "center", paddingHorizontal: 12 }}>
+              {subtitles[0]}
+            </T>
+          </View>
+        ) : (
+          <>
+            <T bold size={32} style={{ marginTop: 16 }}>
+              {titles[step]}
+            </T>
+            <T muted size={16}>
+              {subtitles[step]}
+            </T>
+            {options.length ? (
+              <View
+                style={{
+                  flex: 1,
+                  justifyContent: "center",
+                  gap: 12,
+                  paddingVertical: 24,
+                }}
+              >
+                {options.map((o, n) => (
+                  <Pressable
+                    key={o}
+                    accessibilityRole="radio"
+                    accessibilityState={{ checked: chosen(n) }}
+                    aria-checked={chosen(n)}
+                    onPress={() => choose(n)}
+                    style={{
+                      minHeight: step === 5 ? 58 : 72,
+                      backgroundColor: chosen(n) ? c.primary : c.surface,
+                      borderRadius: 18,
+                      padding: 18,
+                      justifyContent: "center",
+                    }}
+                  >
+                    <T
+                      bold={chosen(n)}
+                      size={17}
+                      style={{
+                        textAlign: "center",
+                        color: chosen(n) ? c.onPrimary : c.text,
+                      }}
+                    >
+                      {o}
+                    </T>
+                  </Pressable>
+                ))}
+              </View>
+            ) : null}
+            {step === 1 ? (
+              <View style={{ gap: 18, paddingTop: 12 }}>
+                <View
+                  style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}
+                >
+                  {allergens.map((a) => (
+                    <Chip
+                      key={a}
+                      label={a}
+                      selected={p.allergies.includes(a)}
+                      onPress={() => {
+                        setConfirmed(true);
+                        update({
+                          allergies: p.allergies.includes(a)
+                            ? p.allergies.filter((x) => x !== a)
+                            : [...p.allergies, a],
+                        });
+                      }}
+                    />
+                  ))}
+                </View>
+                <Pressable
+                  accessibilityRole="checkbox"
+                  accessibilityState={{
+                    checked: confirmed && !p.allergies.length,
+                  }}
+                  onPress={() => {
+                    setConfirmed(true);
+                    update({ allergies: [] });
+                  }}
+                  style={{ paddingVertical: 16 }}
+                >
+                  <Row>
+                    <View
+                      style={{
+                        width: 24,
+                        height: 24,
+                        borderWidth: 1,
+                        borderColor: c.text,
+                        borderRadius: 6,
+                        alignItems: "center",
+                        justifyContent: "center",
+                      }}
+                    >
+                      {confirmed && !p.allergies.length ? (
+                        <Check size={17} color={c.text} />
+                      ) : null}
+                    </View>
+                    <T>No food allergies</T>
+                  </Row>
+                </Pressable>
+                <Row style={{ alignItems: "flex-start" }}>
+                  <ShieldCheck color={c.muted} size={20} />
+                  <T muted size={12} style={{ flex: 1 }}>
+                    Always check labels and cross-contact risks. Cook cannot
+                    guarantee an allergen-free meal.
+                  </T>
+                </Row>
+              </View>
+            ) : null}
+            {step === 6 ? (
+              <View
+                style={{
+                  flex: 1,
+                  justifyContent: "center",
+                  gap: 10,
+                  paddingVertical: 16,
+                }}
+              >
+                {[
+                  ["AT", "Austria"],
+                  ["DE", "Germany"],
+                  ["US", "United States"],
+                  ["GB", "United Kingdom"],
+                  ["FR", "France"],
+                  ["IT", "Italy"],
+                ].map(([code, name]) => (
+                  <Pressable
+                    key={code}
+                    accessibilityRole="radio"
+                    accessibilityState={{ checked: p.country === code }}
+                    onPress={() => update({ country: code })}
+                    style={{
+                      backgroundColor:
+                        p.country === code ? c.primary : c.surface,
+                      padding: 16,
+                      borderRadius: 16,
+                    }}
+                  >
+                    <T
+                      style={{
+                        color: p.country === code ? c.onPrimary : c.text,
+                      }}
+                    >
+                      {name}
+                    </T>
+                  </Pressable>
+                ))}
+                <T muted size={12}>
+                  Suggested from your device. No location tracking.
+                </T>
+              </View>
+            ) : null}
+          </>
+        )}
+      </Animated.View>
     </Screen>
   );
 }

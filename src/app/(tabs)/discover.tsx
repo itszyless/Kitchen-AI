@@ -1,11 +1,28 @@
-import { useState } from "react";
-import { View } from "react-native";
-import { Screen, T, Field, Chip, Row, Empty } from "@/components/ui";
+import {
+  BottomSheetModal,
+  BottomSheetView,
+} from "@expo/ui/community/bottom-sheet";
+import { SlidersHorizontal } from "lucide-react-native";
+import { useTheme } from "@/theme/useTheme";
+import { useState, useRef } from "react";
+import { View, ScrollView } from "react-native";
+import {
+  Screen,
+  T,
+  SearchBar,
+  Chip,
+  Row,
+  Empty,
+  IconButton,
+  Button,
+} from "@/components/ui";
 import { RecipeCard } from "@/components/RecipeCard";
 import { recipes, ingredientById } from "@/data/catalog";
 import { eligible, normalize, match } from "@/domain/matching";
 import { useCook } from "@/state/store";
 export default function Discover() {
+  const sheet = useRef<BottomSheetModal>(null);
+  const c = useTheme();
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState("All recipes");
   const p = useCook((s) => s.preferences);
@@ -37,18 +54,29 @@ export default function Discover() {
     );
   return (
     <Screen>
-      <T size={36} bold>
-        Find your next favorite.
-      </T>
-      <T muted>A good meal starts with a little curiosity.</T>
-      <Field
+      <Row style={{ justifyContent: "space-between" }}>
+        <T size={32} bold>
+          Discover
+        </T>
+        <IconButton
+          icon={SlidersHorizontal}
+          label="Recipe filters"
+          onPress={() => sheet.current?.present()}
+        />
+      </Row>
+      <SearchBar
         accessibilityLabel="Search recipes"
-        placeholder="Pasta, chickpeas, Mediterranean…"
+        placeholder="Recipes, ingredients, cuisines…"
         value={query}
         onChangeText={setQuery}
         returnKeyType="search"
       />
-      <Row style={{ flexWrap: "wrap" }}>
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        style={{ marginHorizontal: -20 }}
+        contentContainerStyle={{ paddingHorizontal: 20, gap: 8 }}
+      >
         {[
           "All recipes",
           "Under 20 min",
@@ -64,11 +92,11 @@ export default function Discover() {
             onPress={() => setFilter(f)}
           />
         ))}
-      </Row>
+      </ScrollView>
       <T muted size={13}>
         {result.length} recipes · tailored to your food preferences
       </T>
-      <View style={{ gap: 28 }}>
+      <View style={{ gap: 8 }}>
         {result.map((r) => (
           <RecipeCard
             key={r.id}
@@ -84,6 +112,37 @@ export default function Discover() {
           body="Try an ingredient or a cuisine, or change the filters. Allergy exclusions are always applied."
         />
       ) : null}
+      <BottomSheetModal ref={sheet} snapPoints={["65%"]} enablePanDownToClose>
+        <BottomSheetView
+          style={{ padding: 24, gap: 20, backgroundColor: c.bg }}
+        >
+          <T bold size={26}>
+            Your kind of cooking
+          </T>
+          <T muted>Allergy exclusions always stay on.</T>
+          <Row style={{ flexWrap: "wrap" }}>
+            {[
+              "All recipes",
+              "Under 20 min",
+              "High protein",
+              "Vegan",
+              "Saved",
+              "Community",
+            ].map((f) => (
+              <Chip
+                key={f}
+                label={f}
+                selected={f === filter}
+                onPress={() => setFilter(f)}
+              />
+            ))}
+          </Row>
+          <Button
+            label="Show recipes"
+            onPress={() => sheet.current?.dismiss()}
+          />
+        </BottomSheetView>
+      </BottomSheetModal>
     </Screen>
   );
 }

@@ -1,7 +1,12 @@
 import { router } from "expo-router";
-import { View } from "react-native";
-import { Leaf, ShoppingBasket, Bookmark } from "lucide-react-native";
-import { Screen, T, Panel, Button, Chip, Row } from "@/components/ui";
+import { View, Pressable } from "react-native";
+import {
+  UserRound,
+  ShoppingBasket,
+  Bookmark,
+  ChevronRight,
+} from "lucide-react-native";
+import { Screen, T, Panel, Chip, Row } from "@/components/ui";
 import { useCook } from "@/state/store";
 import { useTheme } from "@/theme/useTheme";
 import { allergens } from "@/domain/types";
@@ -15,38 +20,65 @@ export default function Profile() {
   return (
     <Screen>
       <Row>
-        <Leaf size={34} color={c.primary} />
-        <T size={36} bold>
-          Your kitchen.
+        <T size={32} bold>
+          Profile
         </T>
       </Row>
-      <Panel>
-        <T bold size={24}>
-          Home cook
-        </T>
-        <T muted>
-          {completed} {completed === 1 ? "meal" : "meals"} made · Guest on this
-          device
-        </T>
-        <T size={13}>
-          Your pantry, preferences and saves work without an account. Cloud sync
-          will be available after Supabase is connected.
-        </T>
-      </Panel>
-      <Button
-        secondary
-        icon={ShoppingBasket}
-        label="My shopping list"
-        onPress={() => router.push("/shopping")}
-      />
-      <Button
-        secondary
-        icon={Bookmark}
-        label="Browse recipes & saves"
-        onPress={() => router.push("/discover")}
-      />
+      <Row style={{ paddingVertical: 14 }}>
+        <View
+          style={{
+            width: 64,
+            height: 64,
+            borderRadius: 32,
+            backgroundColor: c.surface,
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <UserRound size={30} color={c.text} />
+        </View>
+        <View style={{ gap: 5, flex: 1 }}>
+          <T bold size={23}>
+            Home cook
+          </T>
+          <T muted size={13}>
+            {completed} {completed === 1 ? "meal" : "meals"} made · Guest
+          </T>
+        </View>
+      </Row>
+      <View>
+        {[
+          {
+            title: "My shopping list",
+            icon: ShoppingBasket,
+            route: "/shopping" as const,
+          },
+          {
+            title: "Browse recipes & saves",
+            icon: Bookmark,
+            route: "/discover" as const,
+          },
+        ].map(({ title, icon: Icon, route }) => (
+          <Pressable
+            key={title}
+            accessibilityRole="button"
+            onPress={() => router.push(route)}
+            style={{
+              paddingVertical: 18,
+              borderBottomWidth: 1,
+              borderColor: c.border,
+            }}
+          >
+            <Row>
+              <Icon size={22} color={c.text} />
+              <T style={{ flex: 1 }}>{title}</T>
+              <ChevronRight color={c.muted} size={19} />
+            </Row>
+          </Pressable>
+        ))}
+      </View>
       <T bold size={24}>
-        Make yourself at home
+        Preferences
       </T>
       <T bold>Appearance</T>
       <Row>

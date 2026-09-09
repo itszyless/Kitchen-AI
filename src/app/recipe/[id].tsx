@@ -1,8 +1,16 @@
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useState } from "react";
 import { View, Pressable, Share } from "react-native";
 import { Image } from "expo-image";
 import { router, useLocalSearchParams } from "expo-router";
-import { Bookmark, Share2, Check, Plus, Minus } from "lucide-react-native";
+import {
+  Bookmark,
+  Share2,
+  Check,
+  Plus,
+  Minus,
+  ArrowLeft,
+} from "lucide-react-native";
 import {
   Back,
   Screen,
@@ -12,6 +20,7 @@ import {
   Panel,
   Button,
   Empty,
+  Progress,
 } from "@/components/ui";
 import { recipes, ingredientById } from "@/data/catalog";
 import { eligible, match, available, substitutes } from "@/domain/matching";
@@ -29,6 +38,7 @@ export default function Detail() {
   const [selected, setSelected] = useState<string | null>(null);
   const [added, setAdded] = useState(false);
   const c = useTheme();
+  const insets = useSafeAreaInsets();
   if (!r)
     return (
       <Screen>
@@ -50,82 +60,124 @@ export default function Detail() {
       </Screen>
     );
   const m = match(r, pantry, servings);
+  const start = () =>
+    router.push({
+      pathname: "/cook/[id]",
+      params: { id: r.id, servings: String(servings) },
+    });
   return (
-    <Screen>
-      <Row style={{ justifyContent: "space-between" }}>
-        <Back title="Recipe" />
-        <Row>
+    <Screen
+      style={{ paddingTop: 0, gap: 18 }}
+      footer={<Button label="Start cooking" onPress={start} />}
+    >
+      <View style={{ marginHorizontal: -20 }}>
+        <Image
+          source={r.image}
+          contentFit="cover"
+          style={{ width: "100%", height: 300 }}
+        />
+        <Row
+          style={{
+            position: "absolute",
+            top: Math.max(insets.top, 20),
+            left: 20,
+            right: 20,
+            justifyContent: "space-between",
+          }}
+        >
           <IconButton
-            icon={Bookmark}
-            label={saved.includes(r.id) ? "Unsave recipe" : "Save recipe"}
-            onPress={() => toggle(r.id)}
-          />
-          <IconButton
-            icon={Share2}
-            label="Share recipe"
+            icon={ArrowLeft}
+            label="Go back"
             onPress={() =>
-              void Share.share({
-                message: r.title + " — " + r.subtitle + " From Cook.",
-              }).catch(() => {})
+              router.canGoBack() ? router.back() : router.replace("/")
             }
           />
+          <Row>
+            <IconButton
+              icon={Bookmark}
+              active={saved.includes(r.id)}
+              label={saved.includes(r.id) ? "Unsave recipe" : "Save recipe"}
+              onPress={() => toggle(r.id)}
+            />
+            <IconButton
+              icon={Share2}
+              label="Share recipe"
+              onPress={() =>
+                void Share.share({
+                  message: r.title + " — " + r.subtitle + " From Cook.",
+                }).catch(() => {})
+              }
+            />
+          </Row>
         </Row>
-      </Row>
-      <Image
-        source={r.image}
-        style={{ height: 300, borderRadius: 28 }}
-        contentFit="cover"
-      />
-      <T size={12} bold muted>
-        {r.source === "Cook" ? "COOK ORIGINAL" : "COMMUNITY · SAMPLE"}
-        {saved.includes(r.id) ? " · SAVED" : ""}
+      </View>
+      <T muted size={12}>
+        {r.source === "Cook" ? "THE COOK KITCHEN" : "COMMUNITY · SAMPLE"}
       </T>
-      <T size={36} bold>
+      <T bold size={32}>
         {r.title}
       </T>
       <T muted>{r.subtitle}</T>
-      <T size={13} muted>
-        {r.author} · {r.minutes} min · Beginner friendly
-      </T>
-      <Row>
-        <Panel>
-          <T bold>{r.calories} kcal*</T>
-          <T size={12} muted>
-            per serving
+      <Row
+        style={{
+          paddingVertical: 12,
+          borderTopWidth: 1,
+          borderBottomWidth: 1,
+          borderColor: c.border,
+          justifyContent: "space-between",
+        }}
+      >
+        <View style={{ gap: 4 }}>
+          <T bold>{r.minutes} min</T>
+          <T muted size={12}>
+            Total time
           </T>
-        </Panel>
-        <Panel>
-          <T bold>{r.protein}g protein*</T>
-          <T size={12} muted>
-            per serving
+        </View>
+        <View style={{ gap: 4 }}>
+          <T bold>Easy</T>
+          <T muted size={12}>
+            Skill level
           </T>
-        </Panel>
+        </View>
+        <View style={{ gap: 4 }}>
+          <T bold>{r.protein}g*</T>
+          <T muted size={12}>
+            Protein
+          </T>
+        </View>
       </Row>
-      <Panel>
-        <T bold>
-          {m.score === 100 ? "You have everything" : m.score + "% pantry match"}
+      <Row>
+        <View style={{ flex: 1, gap: 8 }}>
+          <T bold size={15}>
+            {m.score}% in your pantry
+          </T>
+          <Progress value={m.score} />
+        </View>
+        <T muted size={12}>
+          {m.missing.length} missing
         </T>
-        <T muted size={14}>
-          {m.missing.length
-            ? m.missing.length + " ingredients need topping up."
-            : "Your kitchen is ready for this one."}
-        </T>
-      </Panel>
-      <Row style={{ justifyContent: "space-between" }}>
-        <T size={25} bold>
+      </Row>
+      <Row style={{ justifyContent: "space-between", flexWrap: "wrap" }}>
+        <T bold size={24}>
           Ingredients
         </T>
-        <Row>
+        <Row style={{ gap: 8 }}>
           <IconButton
             icon={Minus}
             label="Fewer servings"
-            onPress={() => setServings((s) => Math.max(1, s - 1))}
+            onPress={() => {
+              setServings((s) => Math.max(1, s - 1));
+              setAdded(false);
+            }}
           />
-          <T bold>{servings}</T>
+          <T bold>{servings} servings</T>
           <IconButton
             icon={Plus}
             label="More servings"
-            onPress={() => setServings((s) => Math.min(12, s + 1))}
+            onPress={() => {
+              setServings((s) => Math.min(12, s + 1));
+              setAdded(false);
+            }}
           />
         </Row>
       </Row>
@@ -139,7 +191,7 @@ export default function Detail() {
             key={i.ingredientId}
             style={{
               gap: 12,
-              paddingBottom: 16,
+              paddingBottom: 12,
               borderBottomWidth: 1,
               borderColor: c.border,
             }}
@@ -162,7 +214,11 @@ export default function Detail() {
                 <View style={{ flex: 1 }}>
                   <T bold>{ingredientById[i.ingredientId].name}</T>
                   <T muted size={12}>
-                    {owned ? "Have" : i.optional ? "Optional" : "Missing"}
+                    {owned
+                      ? "You have it"
+                      : i.optional
+                        ? "Optional"
+                        : "Missing"}
                     {swaps.some((s) => s.owned)
                       ? " · Substitute in pantry"
                       : ""}
@@ -213,12 +269,6 @@ export default function Detail() {
           addShopping(m.missing);
           setAdded(true);
         }}
-      />
-      <Button
-        label="Start cooking"
-        onPress={() =>
-          router.push({ pathname: "/cook/[id]", params: { id: r.id } })
-        }
       />
       <T bold size={24}>
         A peek at the steps

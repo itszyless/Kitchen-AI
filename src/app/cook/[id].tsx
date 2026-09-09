@@ -1,17 +1,29 @@
 import { useEffect, useState, useRef } from "react";
-import { View, AppState } from "react-native";
+import { AppState } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
 import { useKeepAwake } from "expo-keep-awake";
 import * as Haptics from "expo-haptics";
 import { Timer, Check } from "lucide-react-native";
-import { Screen, Back, T, Panel, Button, Row, Empty } from "@/components/ui";
+import {
+  Screen,
+  Back,
+  T,
+  Panel,
+  Button,
+  Row,
+  Empty,
+  Progress,
+} from "@/components/ui";
 import { recipes } from "@/data/catalog";
 import { eligible } from "@/domain/matching";
 import { useCook } from "@/state/store";
 import { useTheme } from "@/theme/useTheme";
 export default function Cooking() {
   useKeepAwake();
-  const { id } = useLocalSearchParams<{ id: string }>();
+  const { id, servings: servingParam } = useLocalSearchParams<{
+    id: string;
+    servings?: string;
+  }>();
   const r = recipes.find((r) => r.id === id);
   const p = useCook((s) => s.preferences);
   const complete = useCook((s) => s.complete);
@@ -55,6 +67,10 @@ export default function Cooking() {
       </Screen>
     );
   const current = r.steps[step];
+  const servings = Math.min(
+    12,
+    Math.max(1, Number(servingParam) || r.servings),
+  );
   if (done)
     return (
       <Screen>
@@ -73,31 +89,58 @@ export default function Cooking() {
       </Screen>
     );
   return (
-    <Screen>
-      <Back title="Let’s cook" />
-      <T size={13} muted>
-        {r.title}
-      </T>
-      <Row>
-        {r.steps.map((_, n) => (
-          <View
-            key={n}
-            style={{
-              height: 5,
-              borderRadius: 4,
-              flex: 1,
-              backgroundColor: n <= step ? c.primary : c.border,
+    <Screen
+      footer={
+        <>
+          {" "}
+          <Button
+            label={
+              step === r.steps.length - 1 ? "I’m done — let’s eat" : "Next step"
+            }
+            onPress={() => {
+              if (step === r.steps.length - 1) {
+                if (!completed.current) {
+                  complete();
+                  completed.current = true;
+                }
+                setDone(true);
+                setEnd(null);
+              } else {
+                setStep((s) => s + 1);
+                setTip(false);
+              }
             }}
           />
-        ))}
+          {step > 0 ? (
+            <Button
+              secondary
+              label="Previous step"
+              onPress={() => {
+                setStep((s) => s - 1);
+                setTip(false);
+              }}
+            />
+          ) : null}
+        </>
+      }
+    >
+      <Back title="Let’s cook" />
+      <T size={13} muted>
+        {r.title} · {servings} servings
+      </T>
+      <Row>
+        <Progress value={((step + 1) / r.steps.length) * 100} />
+        <T muted size={12}>
+          {step + 1}/{r.steps.length}
+        </T>
       </Row>
       <T size={13} bold muted>
         STEP {step + 1} OF {r.steps.length}
       </T>
-      <T size={38} bold>
+      <T size={34} bold>
         {current.title}
       </T>
-      <T size={22} style={{ lineHeight: 34 }}>
+      <T size={21} style={{ lineHeight: 33 }}>
         {current.body}
       </T>
       <Button
@@ -141,34 +184,6 @@ export default function Cooking() {
         Keep Cook open for timer alerts. Background notifications are not
         enabled in this preview.
       </T>
-      <Button
-        label={
-          step === r.steps.length - 1 ? "I’m done — let’s eat" : "Next step"
-        }
-        onPress={() => {
-          if (step === r.steps.length - 1) {
-            if (!completed.current) {
-              complete();
-              completed.current = true;
-            }
-            setDone(true);
-            setEnd(null);
-          } else {
-            setStep((s) => s + 1);
-            setTip(false);
-          }
-        }}
-      />
-      {step > 0 ? (
-        <Button
-          secondary
-          label="Previous step"
-          onPress={() => {
-            setStep((s) => s - 1);
-            setTip(false);
-          }}
-        />
-      ) : null}
     </Screen>
   );
 }

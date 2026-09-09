@@ -4,7 +4,7 @@
     "slug": "cook",
     "version": "0.1.0",
     "orientation": "portrait",
-    "icon": "./assets/images/cook-placeholder.png",
+    "icon": "./assets/images/app-icon.png",
     "scheme": "cook",
     "userInterfaceStyle": "automatic",
     "ios": {
@@ -12,22 +12,22 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/cook-placeholder.png",
-        "backgroundColor": "#254F3B"
+        "foregroundImage": "./assets/images/app-icon.png",
+        "backgroundColor": "#171719"
       },
       "predictiveBackGestureEnabled": false
     },
     "web": {
       "output": "single",
-      "favicon": "./assets/images/cook-placeholder.png"
+      "favicon": "./assets/images/app-icon.png"
     },
     "plugins": [
       "expo-router",
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#FAF8F2",
-          "image": "./assets/images/cook-placeholder.png",
+          "backgroundColor": "#FFFFFF",
+          "image": "./assets/images/app-icon.png",
           "imageWidth": 76
         }
       ],

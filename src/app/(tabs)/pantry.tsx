@@ -1,11 +1,19 @@
 import { useState } from "react";
-import { View } from "react-native";
+import { View, ScrollView, Pressable } from "react-native";
 import { router } from "expo-router";
-import { Plus, Minus, Trash2 } from "lucide-react-native";
+import {
+  Plus,
+  Minus,
+  Trash2,
+  Carrot,
+  Milk,
+  Package,
+  ChevronDown,
+} from "lucide-react-native";
 import {
   Screen,
   T,
-  Field,
+  SearchBar,
   Row,
   Button,
   Chip,
@@ -18,6 +26,7 @@ import { useTheme } from "@/theme/useTheme";
 export default function Pantry() {
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("All");
+  const [expanded, setExpanded] = useState<string | null>(null);
   const [removed, setRemoved] = useState<
     ReturnType<typeof useCook.getState>["pantry"][number] | null
   >(null);
@@ -35,10 +44,10 @@ export default function Pantry() {
     )
     .sort((a, b) => (a.expires || "9999").localeCompare(b.expires || "9999"));
   return (
-    <Screen>
+    <Screen style={{ gap: 18 }}>
       <Row style={{ justifyContent: "space-between" }}>
-        <T size={36} bold>
-          Your pantry.
+        <T bold size={32}>
+          Pantry
         </T>
         <IconButton
           icon={Plus}
@@ -46,14 +55,18 @@ export default function Pantry() {
           onPress={() => router.push("/add")}
         />
       </Row>
-      <T muted>A little less waste. A lot more possibility.</T>
-      <Field
+      <SearchBar
         accessibilityLabel="Search pantry"
-        placeholder="Find an ingredient…"
+        placeholder="Search your kitchen"
         value={query}
         onChangeText={setQuery}
       />
-      <Row style={{ flexWrap: "wrap" }}>
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        style={{ marginHorizontal: -20 }}
+        contentContainerStyle={{ paddingHorizontal: 20, gap: 8 }}
+      >
         {["All", "Produce", "Fridge", "Cupboard"].map((x) => (
           <Chip
             key={x}
@@ -62,7 +75,7 @@ export default function Pantry() {
             onPress={() => setCategory(x)}
           />
         ))}
-      </Row>
+      </ScrollView>
       {removed ? (
         <Button
           secondary
@@ -73,75 +86,109 @@ export default function Pantry() {
           }}
         />
       ) : null}
-      <T size={13} muted>
-        {result.length} ingredients · soonest expiry first
+      <T muted size={12}>
+        {result.length} ingredients · Soonest expiry first
       </T>
-      {result.map((item) => (
-        <View
-          key={item.id}
-          style={{
-            paddingVertical: 16,
-            gap: 12,
-            borderBottomWidth: 1,
-            borderColor: c.border,
-          }}
-        >
-          <Row style={{ justifyContent: "space-between" }}>
-            <View style={{ flex: 1, gap: 4 }}>
-              <T bold size={19}>
-                {item.name}
-              </T>
-              <T muted size={13}>
-                {ingredientById[item.ingredientId]?.category || "Your products"}
-                {item.expires ? " · Use by " + item.expires : ""}
-              </T>
+      <View>
+        {result.map((item) => {
+          const cat = ingredientById[item.ingredientId]?.category;
+          const Icon =
+            cat === "Produce" ? Carrot : cat === "Fridge" ? Milk : Package;
+          return (
+            <View
+              key={item.id}
+              style={{ borderBottomWidth: 1, borderColor: c.border }}
+            >
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={"Edit " + item.name}
+                accessibilityState={{ expanded: expanded === item.id }}
+                onPress={() =>
+                  setExpanded(expanded === item.id ? null : item.id)
+                }
+                style={{ paddingVertical: 16 }}
+              >
+                <Row>
+                  <View
+                    style={{
+                      width: 44,
+                      height: 48,
+                      borderRadius: 13,
+                      backgroundColor: c.surface,
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                  >
+                    <Icon color={c.muted} size={24} />
+                  </View>
+                  <View style={{ flex: 1, gap: 4 }}>
+                    <T bold size={15}>
+                      {item.name}
+                    </T>
+                    <T muted size={12}>
+                      {item.expires
+                        ? "Use by " + item.expires
+                        : cat || "Private product"}
+                    </T>
+                  </View>
+                  <T size={13}>
+                    {item.quantity} {item.unit}
+                  </T>
+                  <ChevronDown size={16} color={c.muted} />
+                </Row>
+              </Pressable>
+              {expanded === item.id ? (
+                <Row
+                  style={{ paddingBottom: 14, justifyContent: "space-between" }}
+                >
+                  <Row>
+                    <IconButton
+                      icon={Minus}
+                      label={"Decrease " + item.name}
+                      onPress={() =>
+                        update(item.id, {
+                          quantity: Math.max(
+                            0,
+                            item.quantity - (item.unit === "piece" ? 1 : 25),
+                          ),
+                        })
+                      }
+                    />
+                    <T size={13}>Adjust amount</T>
+                    <IconButton
+                      icon={Plus}
+                      label={"Increase " + item.name}
+                      onPress={() =>
+                        update(item.id, {
+                          quantity:
+                            item.quantity + (item.unit === "piece" ? 1 : 25),
+                        })
+                      }
+                    />
+                  </Row>
+                  <IconButton
+                    icon={Trash2}
+                    label={"Remove " + item.name}
+                    onPress={() => {
+                      remove(item.id);
+                      setRemoved(item);
+                    }}
+                  />
+                </Row>
+              ) : null}
             </View>
-            <IconButton
-              icon={Trash2}
-              label={"Remove " + item.name}
-              onPress={() => {
-                remove(item.id);
-                setRemoved(item);
-              }}
-            />
-          </Row>
-          <Row>
-            <IconButton
-              icon={Minus}
-              label={"Decrease " + item.name}
-              onPress={() =>
-                update(item.id, {
-                  quantity: Math.max(
-                    0,
-                    item.quantity - (item.unit === "piece" ? 1 : 25),
-                  ),
-                })
-              }
-            />
-            <T bold style={{ minWidth: 70, textAlign: "center" }}>
-              {item.quantity} {item.unit}
-            </T>
-            <IconButton
-              icon={Plus}
-              label={"Increase " + item.name}
-              onPress={() =>
-                update(item.id, {
-                  quantity: item.quantity + (item.unit === "piece" ? 1 : 25),
-                })
-              }
-            />
-          </Row>
-        </View>
-      ))}
+          );
+        })}
+      </View>
       {!result.length ? (
         <>
           <Empty
             title={
               pantry.length
-                ? "Nothing in this corner"
-                : "Let’s stock your kitchen"
+                ? "No matching ingredients"
+                : "What’s in your kitchen?"
             }
-            body="Start with a few things you already have. Rough amounts are completely fine."
+            body="Add a few ingredients to find out what you can make."
           />
           <Button label="Add ingredients" onPress={() => router.push("/add")} />
         </>

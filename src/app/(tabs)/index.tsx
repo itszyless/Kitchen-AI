@@ -1,15 +1,18 @@
-import { brand } from "@/theme/tokens";
 import { router } from "expo-router";
-import { View } from "react-native";
-import { Leaf, ShoppingBasket, ArrowRight } from "lucide-react-native";
+import { View, ScrollView, Pressable } from "react-native";
+import {
+  ShoppingBasket,
+  ChevronRight,
+  UserRound,
+  Refrigerator,
+} from "lucide-react-native";
 import {
   Screen,
   T,
   Row,
   IconButton,
-  Panel,
-  Button,
   Empty,
+  SectionHeader,
 } from "@/components/ui";
 import { RecipeCard } from "@/components/RecipeCard";
 import { recipes } from "@/data/catalog";
@@ -31,83 +34,84 @@ export default function Home() {
     );
   const hero = ranked[0];
   return (
-    <Screen>
+    <Screen style={{ gap: 22 }}>
       <Row style={{ justifyContent: "space-between" }}>
-        <Row>
-          <Leaf size={24} color={c.primary} />
-          <T size={26} bold>
-            {brand.name}
+        <View>
+          <T bold size={26} style={{ letterSpacing: -1.4 }}>
+            COOK
           </T>
-        </Row>
-        <IconButton
-          icon={ShoppingBasket}
-          label="Shopping list"
-          onPress={() => router.push("/shopping")}
-        />
-      </Row>
-      <View style={{ gap: 8 }}>
-        <T size={12} muted bold style={{ letterSpacing: 2 }}>
-          A LITTLE INSPIRATION FOR TODAY
-        </T>
-        <T size={38} bold>
-          What should I{String.fromCharCode(10)}cook today?
-        </T>
-        <T muted>Something good is closer than you think.</T>
-      </View>
-      {hero ? (
-        <>
-          <Row style={{ justifyContent: "space-between" }}>
-            <T bold size={18}>
-              Your dinner, sorted
-            </T>
-            <T size={12} muted>
-              {hero.recipe.minutes} MINUTES AWAY
-            </T>
-          </Row>
-          <RecipeCard
-            recipe={hero.recipe}
-            score={pantry.length ? hero.score : undefined}
+        </View>
+        <Row style={{ gap: 8 }}>
+          <IconButton
+            icon={ShoppingBasket}
+            label="Shopping list"
+            onPress={() => router.push("/shopping")}
           />
-        </>
+          <IconButton
+            icon={UserRound}
+            label="My profile"
+            onPress={() => router.push("/profile")}
+          />
+        </Row>
+      </Row>
+      <T bold size={32}>
+        What should I{String.fromCharCode(10)}
+        <T bold size={32}>
+          cook today?
+        </T>
+      </T>
+      {hero ? (
+        <RecipeCard
+          recipe={hero.recipe}
+          score={pantry.length ? hero.score : undefined}
+        />
       ) : (
         <Empty
           title="Let’s find another idea"
-          body="No sample recipes fit your current preferences. Your allergy exclusions stay in place."
+          body="No sample recipes fit your preferences. Allergy exclusions stay in place."
         />
       )}
-      <Panel>
+      <Pressable
+        accessibilityRole="button"
+        onPress={() => router.push(pantry.length ? "/pantry" : "/scan")}
+        style={{ paddingVertical: 10 }}
+      >
         <Row>
-          <Leaf color={c.primary} />
-          <T bold size={20} style={{ flex: 1 }}>
-            {pantry.length
-              ? "Good things in your pantry"
-              : "Your fridge has potential."}
-          </T>
+          <View
+            style={{ padding: 12, backgroundColor: c.soft, borderRadius: 15 }}
+          >
+            <Refrigerator size={24} color={c.primary} />
+          </View>
+          <View style={{ flex: 1, gap: 3 }}>
+            <T bold size={16}>
+              Cook with what you have
+            </T>
+            <T muted size={12}>
+              {pantry.length
+                ? pantry.length + " ingredients ready for a good meal"
+                : "Your next meal could be in your fridge"}
+            </T>
+          </View>
+          <ChevronRight size={20} color={c.text} />
         </Row>
-        <T muted>
-          {pantry.length
-            ? pantry.length +
-              " ingredients, plenty of possibilities. See what you can make."
-            : "Add a few ingredients. We’ll do the dinner figuring-out."}
-        </T>
-        <Button
-          label={pantry.length ? "Open my pantry" : "Meet your pantry"}
-          secondary
-          icon={ArrowRight}
-          onPress={() => router.push(pantry.length ? "/pantry" : "/scan")}
-        />
-      </Panel>
-      <Row style={{ justifyContent: "space-between" }}>
-        <T size={24} bold>
-          A little more inspiration
-        </T>
-      </Row>
-      {ranked.slice(1).map((r) => (
-        <RecipeCard key={r.recipe.id} recipe={r.recipe} compact />
-      ))}
-      <T size={12} muted>
-        Preview collection · Original sample recipes. *Nutrition is illustrative
-        and has not been verified.
+      </Pressable>
+      <SectionHeader
+        title="Quick tonight"
+        action="Explore"
+        onPress={() => router.push("/discover")}
+      />
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        style={{ marginHorizontal: -20 }}
+        contentContainerStyle={{ paddingHorizontal: 20, gap: 16 }}
+      >
+        {ranked.slice(1).map((r) => (
+          <RecipeCard key={r.recipe.id} recipe={r.recipe} variant="rail" />
+        ))}
+      </ScrollView>
+      <T size={11} muted>
+        Original sample recipes · Nutrition is illustrative.
       </T>
     </Screen>
   );

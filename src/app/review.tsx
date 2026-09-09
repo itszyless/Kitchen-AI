@@ -1,12 +1,11 @@
 import { useState } from "react";
 import { View } from "react-native";
 import { router } from "expo-router";
-import { Trash2 } from "lucide-react-native";
+import { Trash2, CheckCircle2 } from "lucide-react-native";
 import {
   Screen,
   T,
   Back,
-  Panel,
   Row,
   Field,
   Button,
@@ -45,18 +44,26 @@ export default function Review() {
     router.replace("/pantry");
   };
   return (
-    <Screen>
+    <Screen
+      footer={
+        <Button
+          label={"Add " + items.length + " items to pantry"}
+          disabled={!items.length}
+          onPress={save}
+        />
+      }
+    >
       <Back title="Review ingredients" />
       <T size={34} bold>
-        A second look, then you’re set.
+        Check your ingredients
       </T>
-      <Panel>
-        <T bold>Sample scan · no photo analyzed</T>
-        <T size={14}>
-          These are demonstration results. Correct names and amounts just as you
-          would after a real scan.
+      <Row>
+        <CheckCircle2 color={c.text} size={24} />
+        <T muted size={13} style={{ flex: 1 }}>
+          Sample results · No photo analyzed. Check names and amounts before
+          adding.
         </T>
-      </Panel>
+      </Row>
       {items.map((entry) => (
         <View
           key={entry.item.id}
@@ -69,7 +76,7 @@ export default function Review() {
         >
           <Row>
             <View style={{ flex: 1 }}>
-              <T size={20} bold>
+              <T size={17} bold>
                 {entry.item.name}
               </T>
               <T size={13} muted>
@@ -141,11 +148,6 @@ export default function Review() {
         </View>
       ))}
       {error ? <T style={{ color: c.danger }}>{error}</T> : null}
-      <Button
-        label={"Add " + items.length + " items to pantry"}
-        disabled={!items.length}
-        onPress={save}
-      />
     </Screen>
   );
 }
