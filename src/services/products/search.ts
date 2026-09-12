@@ -87,6 +87,7 @@ export async function searchProducts(
     ) {
       throw new Error(
         "Product search could not connect. Check your connection and try again.",
+        { cause: error },
       );
     }
     throw error;
