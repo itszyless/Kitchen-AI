@@ -62,7 +62,7 @@ export function RecipeCard({
           ) : null}
           {recipe.source === "Community" ? (
             <T muted size={11}>
-              Community · Sample
+              Community
             </T>
           ) : null}
         </Pressable>

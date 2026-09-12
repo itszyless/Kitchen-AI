@@ -1,0 +1,3 @@
+[functions.kitchen-ai]
+# The handler verifies each bearer token with auth.getUser().
+verify_jwt = false

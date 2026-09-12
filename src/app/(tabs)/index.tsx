@@ -55,10 +55,7 @@ export default function Home() {
         </Row>
       </Row>
       <T bold size={32}>
-        What should I{String.fromCharCode(10)}
-        <T bold size={32}>
-          cook today?
-        </T>
+        What should I cook today?
       </T>
       {hero ? (
         <RecipeCard
@@ -68,7 +65,7 @@ export default function Home() {
       ) : (
         <Empty
           title="Let’s find another idea"
-          body="No sample recipes fit your preferences. Allergy exclusions stay in place."
+          body="No recipes fit your preferences. Allergy exclusions stay in place."
         />
       )}
       <Pressable
@@ -111,7 +108,7 @@ export default function Home() {
         ))}
       </ScrollView>
       <T size={11} muted>
-        Original sample recipes · Nutrition is illustrative.
+        A little inspiration for your next meal.
       </T>
     </Screen>
   );

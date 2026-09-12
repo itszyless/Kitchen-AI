@@ -1,4 +1,5 @@
-import appIcon from "../../assets/images/app-icon.png";
+import { useTranslate } from "@/i18n";
+import { LanguagePicker } from "@/components/LanguagePicker";
 import { useState } from "react";
 import { View, Pressable, useWindowDimensions } from "react-native";
 import { Image } from "expo-image";
@@ -14,22 +15,34 @@ import {
   Row,
   IconButton,
   Progress,
+  SearchBar,
+  Field,
 } from "@/components/ui";
 import { useCook } from "@/state/store";
 import { useTheme } from "@/theme/useTheme";
 import { allergens } from "@/domain/types";
+import {
+  allergySearchTerms,
+  otherAllergies,
+  foodPreferences,
+} from "@/data/foodPreferences";
+import { normalize } from "@/domain/matching";
 import { recipes } from "@/data/catalog";
 export default function Onboarding() {
   const [step, setStep] = useState(0);
+  const [search, setSearch] = useState("");
+  const [age, setAge] = useState("");
   const [confirmed, setConfirmed] = useState(false);
   const p = useCook((s) => s.preferences);
   const update = useCook((s) => s.updatePreferences);
   const finish = useCook((s) => s.finishOnboarding);
   const c = useTheme();
+  const t = useTranslate();
   const { height } = useWindowDimensions();
   const reduced = useReducedMotion();
   const next = () => {
     void Haptics.selectionAsync().catch(() => {});
+    setSearch("");
     setStep((s) => s + 1);
   };
   const done = (scan: boolean) => {
@@ -44,6 +57,7 @@ export default function Onboarding() {
     "At home in the kitchen?",
     "Who are you cooking for?",
     "Where’s your kitchen?",
+    "How old are you?",
   ];
   const subtitles = [
     "Turn the food you have into a meal you’ll love.",
@@ -53,6 +67,7 @@ export default function Onboarding() {
     "We’ll help as much as you need.",
     "Choose your usual number of servings.",
     "Your region helps us find familiar ingredients.",
+    "Cook is for people aged 13 and older.",
   ];
   const options =
     step === 2
@@ -90,17 +105,29 @@ export default function Onboarding() {
         step === 0 ? (
           <>
             <Button label="Get started" onPress={next} />
-            <T muted size={12} style={{ textAlign: "center" }}>
-              No account needed to start cooking.
-            </T>
           </>
-        ) : step === 6 ? (
+        ) : step === 7 ? (
           <>
-            <Button label="Explore recipes" onPress={() => done(false)} />
+            <Button
+              label="Explore recipes"
+              disabled={
+                !/^\d{1,3}$/.test(age) || Number(age) < 13 || Number(age) > 120
+              }
+              onPress={() => {
+                update({ age: Number(age) });
+                done(false);
+              }}
+            />
             <Button
               label="Start with my pantry"
               secondary
-              onPress={() => done(true)}
+              disabled={
+                !/^\d{1,3}$/.test(age) || Number(age) < 13 || Number(age) > 120
+              }
+              onPress={() => {
+                update({ age: Number(age) });
+                done(true);
+              }}
             />
           </>
         ) : (
@@ -119,20 +146,15 @@ export default function Onboarding() {
             label="Previous step"
             onPress={() => setStep((s) => s - 1)}
           />
-          <Progress value={(step / 6) * 100} />
-          <T size={12} muted>
-            {step} of 6
-          </T>
+          <Progress value={(step / 7) * 100} />
+          <LanguagePicker />
         </Row>
       ) : (
         <Row style={{ justifyContent: "space-between" }}>
           <T bold size={26} style={{ letterSpacing: -1.5 }}>
             COOK
           </T>
-          <Image
-            source={appIcon}
-            style={{ width: 42, height: 42, borderRadius: 12 }}
-          />
+          <LanguagePicker />
         </Row>
       )}
       <Animated.View
@@ -189,6 +211,24 @@ export default function Onboarding() {
             <T muted size={16}>
               {subtitles[step]}
             </T>
+            {step === 7 ? (
+              <Field
+                accessibilityLabel="Your age"
+                placeholder="Age"
+                keyboardType="number-pad"
+                maxLength={3}
+                value={age}
+                onChangeText={setAge}
+              />
+            ) : null}
+            {step === 2 ? (
+              <SearchBar
+                accessibilityLabel="Search food preferences"
+                placeholder="Search eating styles…"
+                value={search}
+                onChangeText={setSearch}
+              />
+            ) : null}
             {options.length ? (
               <View
                 style={{
@@ -198,64 +238,153 @@ export default function Onboarding() {
                   paddingVertical: 24,
                 }}
               >
-                {options.map((o, n) => (
-                  <Pressable
-                    key={o}
-                    accessibilityRole="radio"
-                    accessibilityState={{ checked: chosen(n) }}
-                    aria-checked={chosen(n)}
-                    onPress={() => choose(n)}
-                    style={{
-                      minHeight: step === 5 ? 58 : 72,
-                      backgroundColor: chosen(n) ? c.primary : c.surface,
-                      borderRadius: 18,
-                      padding: 18,
-                      justifyContent: "center",
-                    }}
-                  >
-                    <T
-                      bold={chosen(n)}
-                      size={17}
+                {options.map((o, n) =>
+                  step !== 2 || normalize(o + " " + t(o)).includes(normalize(search)) ? (
+                    <Pressable
+                      key={o}
+                      accessibilityRole="radio"
+                      accessibilityState={{ checked: chosen(n) }}
+                      aria-checked={chosen(n)}
+                      onPress={() => choose(n)}
                       style={{
-                        textAlign: "center",
-                        color: chosen(n) ? c.onPrimary : c.text,
+                        minHeight: step === 5 ? 58 : 72,
+                        backgroundColor: chosen(n) ? c.primary : c.surface,
+                        borderRadius: 18,
+                        padding: 18,
+                        justifyContent: "center",
                       }}
                     >
-                      {o}
-                    </T>
-                  </Pressable>
-                ))}
+                      <T
+                        bold={chosen(n)}
+                        size={17}
+                        style={{
+                          textAlign: "center",
+                          color: chosen(n) ? c.onPrimary : c.text,
+                        }}
+                      >
+                        {o}
+                      </T>
+                    </Pressable>
+                  ) : null,
+                )}
+                {step === 2
+                  ? foodPreferences
+                      .filter((f) => normalize(f + " " + t(f)).includes(normalize(search)))
+                      .map((f) => (
+                        <Chip
+                          key={f}
+                          label={f}
+                          selected={(p.foodPreferences ?? []).includes(f)}
+                          onPress={() =>
+                            update({
+                              foodPreferences: (
+                                p.foodPreferences ?? []
+                              ).includes(f)
+                                ? (p.foodPreferences ?? []).filter(
+                                    (x) => x !== f,
+                                  )
+                                : [...(p.foodPreferences ?? []), f],
+                            })
+                          }
+                        />
+                      ))
+                  : null}
               </View>
             ) : null}
             {step === 1 ? (
               <View style={{ gap: 18, paddingTop: 12 }}>
+                <SearchBar
+                  accessibilityLabel="Search allergies"
+                  placeholder="Search allergies or foods…"
+                  value={search}
+                  onChangeText={setSearch}
+                />
                 <View
                   style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}
                 >
-                  {allergens.map((a) => (
-                    <Chip
-                      key={a}
-                      label={a}
-                      selected={p.allergies.includes(a)}
-                      onPress={() => {
-                        setConfirmed(true);
-                        update({
-                          allergies: p.allergies.includes(a)
-                            ? p.allergies.filter((x) => x !== a)
-                            : [...p.allergies, a],
-                        });
-                      }}
-                    />
-                  ))}
+                  {allergens
+                    .filter((a) =>
+                      normalize(
+                        a + " " + t(a) + " " + (allergySearchTerms[a] ?? "") + " " + t(allergySearchTerms[a] ?? ""),
+                      ).includes(normalize(search)),
+                    )
+                    .map((a) => (
+                      <Chip
+                        key={a}
+                        label={a}
+                        selected={p.allergies.includes(a)}
+                        onPress={() => {
+                          setConfirmed(true);
+                          update({
+                            allergies: p.allergies.includes(a)
+                              ? p.allergies.filter((x) => x !== a)
+                              : [...p.allergies, a],
+                          });
+                        }}
+                      />
+                    ))}
                 </View>
+
+                <Row style={{ flexWrap: "wrap" }}>
+                  {[
+                    ...new Set([
+                      ...(search.trim() ? otherAllergies : []),
+                      ...(p.customAllergies ?? []),
+                    ]),
+                  ]
+                    .filter((a) => normalize(a + " " + t(a)).includes(normalize(search)))
+                    .map((a) => (
+                      <Chip
+                        key={a}
+                        label={a}
+                        selected={(p.customAllergies ?? []).includes(a)}
+                        onPress={() => {
+                          setConfirmed(true);
+                          update({
+                            customAllergies: (p.customAllergies ?? []).includes(
+                              a,
+                            )
+                              ? (p.customAllergies ?? []).filter((x) => x !== a)
+                              : [...(p.customAllergies ?? []), a],
+                          });
+                        }}
+                      />
+                    ))}
+                </Row>
+                {search.trim().length >= 2 &&
+                !allergens.some((a) =>
+                  normalize(a + " " + t(a) + " " + (allergySearchTerms[a] ?? "") + " " + t(allergySearchTerms[a] ?? "")).includes(
+                    normalize(search),
+                  ),
+                ) ? (
+                  <Button
+                    label={`Exclude “${search.trim()}”`}
+                    secondary
+                    onPress={() => {
+                      setConfirmed(true);
+                      update({
+                        customAllergies: [
+                          ...new Set([
+                            ...(p.customAllergies ?? []),
+                            search.trim(),
+                          ]),
+                        ],
+                      });
+                      setSearch("");
+                    }}
+                  />
+                ) : null}
                 <Pressable
                   accessibilityRole="checkbox"
                   accessibilityState={{
-                    checked: confirmed && !p.allergies.length,
+                    checked:
+                      confirmed &&
+                      !p.allergies.length &&
+                      !(p.customAllergies ?? []).length,
                   }}
                   onPress={() => {
                     setConfirmed(true);
-                    update({ allergies: [] });
+                    update({ allergies: [], customAllergies: [] });
                   }}
                   style={{ paddingVertical: 16 }}
                 >
@@ -271,7 +400,9 @@ export default function Onboarding() {
                         justifyContent: "center",
                       }}
                     >
-                      {confirmed && !p.allergies.length ? (
+                      {confirmed &&
+                      !p.allergies.length &&
+                      !(p.customAllergies ?? []).length ? (
                         <Check size={17} color={c.text} />
                       ) : null}
                     </View>
@@ -325,9 +456,6 @@ export default function Onboarding() {
                     </T>
                   </Pressable>
                 ))}
-                <T muted size={12}>
-                  Suggested from your device. No location tracking.
-                </T>
               </View>
             ) : null}
           </>

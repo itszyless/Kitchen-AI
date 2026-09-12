@@ -3,8 +3,14 @@ export interface Entitlements {
   mealPlanning: boolean;
 }
 export const entitlements: Entitlements = {
-  advancedScanning: false,
-  mealPlanning: false,
+  advancedScanning: true,
+  mealPlanning: true,
+};
+export const membership = {
+  mode: "free-preview" as const,
+  label: "Cook Plus",
+  billingEnabled: false,
+  entitlementId: "cook_pro",
 };
 export type Retailer = {
   id: string;

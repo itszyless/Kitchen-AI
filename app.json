@@ -34,12 +34,20 @@
       [
         "expo-camera",
         {
-          "cameraPermission": "Allow Cook to scan food barcodes.",
+          "cameraPermission": "Allow Cook to scan ingredients, your fridge and food barcodes.",
           "recordAudioAndroid": false
         }
       ],
       "expo-localization",
-      "expo-secure-store"
+      "expo-secure-store",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Allow Cook to identify food in photos you choose.",
+          "cameraPermission": "Allow Cook to scan ingredients, your fridge and food barcodes.",
+          "microphonePermission": false
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,

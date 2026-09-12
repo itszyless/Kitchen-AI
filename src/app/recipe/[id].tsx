@@ -1,3 +1,4 @@
+import { useLanguage } from "@/i18n";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useState } from "react";
 import { View, Pressable, Share } from "react-native";
@@ -26,6 +27,7 @@ import { recipes, ingredientById } from "@/data/catalog";
 import { eligible, match, available, substitutes } from "@/domain/matching";
 import { useCook } from "@/state/store";
 import { useTheme } from "@/theme/useTheme";
+import { AISubstitutions } from "@/components/AISubstitutions";
 export default function Detail() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const r = recipes.find((r) => r.id === id);
@@ -38,6 +40,8 @@ export default function Detail() {
   const [selected, setSelected] = useState<string | null>(null);
   const [added, setAdded] = useState(false);
   const c = useTheme();
+  const language = useLanguage(s => s.language);
+  const [original, setOriginal] = useState(false);
   const insets = useSafeAreaInsets();
   if (!r)
     return (
@@ -112,12 +116,13 @@ export default function Detail() {
         </Row>
       </View>
       <T muted size={12}>
-        {r.source === "Cook" ? "THE COOK KITCHEN" : "COMMUNITY · SAMPLE"}
+        {r.source === "Cook" ? "THE COOK KITCHEN" : "COMMUNITY"}
       </T>
-      <T bold size={32}>
+      <T bold size={32} original={original}>
         {r.title}
       </T>
-      <T muted>{r.subtitle}</T>
+      <T muted original={original}>{r.subtitle}</T>
+      {language === "de" ? <Button secondary label={original ? "Show translation" : "Show original"} onPress={() => setOriginal(!original)} /> : null}
       <Row
         style={{
           paddingVertical: 12,
@@ -140,9 +145,9 @@ export default function Detail() {
           </T>
         </View>
         <View style={{ gap: 4 }}>
-          <T bold>{r.protein}g*</T>
+          <T bold>{r.servings}</T>
           <T muted size={12}>
-            Protein
+            Servings
           </T>
         </View>
       </Row>
@@ -232,24 +237,13 @@ export default function Detail() {
             {selected === i.ingredientId ? (
               <Panel>
                 <T bold>Substitution ideas</T>
-                {swaps.length ? (
-                  swaps.map((s) => (
-                    <View key={s.to} style={{ gap: 6 }}>
-                      <T bold>
-                        {s.owned ? "You already have" : "Other option"} ·{" "}
-                        {ingredientById[s.to].name}
-                      </T>
-                      <T size={14}>
-                        {s.note} Best as a {s.context}. Check labels and
-                        preparation yourself.
-                      </T>
-                    </View>
-                  ))
-                ) : (
-                  <T muted size={14}>
-                    No verified substitute is available in this recipe context.
-                  </T>
-                )}
+                <AISubstitutions
+                  ingredient={`${amount} ${i.unit} ${ingredientById[i.ingredientId].name}`}
+                  recipe={
+                    r.title + "\n" + r.steps.map((step) => step.body).join("\n")
+                  }
+                />
+
               </Panel>
             ) : null}
           </View>
@@ -278,12 +272,11 @@ export default function Detail() {
           <T bold muted>
             {String(n + 1).padStart(2, "0")}
           </T>
-          <T>{s.title}</T>
+          <T original={original}>{s.title}</T>
         </Row>
       ))}
       <T size={12} muted>
-        *Illustrative nutrition, not verified calculations. Always check
-        ingredient labels and allergy cross-contact risks.
+        Always check ingredient labels and allergy cross-contact risks.
       </T>
     </Screen>
   );

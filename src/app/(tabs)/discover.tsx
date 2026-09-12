@@ -1,11 +1,10 @@
-import {
-  BottomSheetModal,
-  BottomSheetView,
-} from "@expo/ui/community/bottom-sheet";
+import { router } from "expo-router";
+import { Image } from "expo-image";
+import { recipeLibrary, libraryEligible } from "@/data/recipeLibrary";
 import { SlidersHorizontal } from "lucide-react-native";
-import { useTheme } from "@/theme/useTheme";
-import { useState, useRef } from "react";
-import { View, ScrollView } from "react-native";
+import { CookSheet } from "@/components/CookSheet";
+import { useState } from "react";
+import { View, ScrollView, Pressable } from "react-native";
 import {
   Screen,
   T,
@@ -21,8 +20,8 @@ import { recipes, ingredientById } from "@/data/catalog";
 import { eligible, normalize, match } from "@/domain/matching";
 import { useCook } from "@/state/store";
 export default function Discover() {
-  const sheet = useRef<BottomSheetModal>(null);
-  const c = useTheme();
+  const [sheetOpen, setSheetOpen] = useState(false);
+  const [visibleCount, setVisibleCount] = useState(20);
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState("All recipes");
   const p = useCook((s) => s.preferences);
@@ -52,6 +51,24 @@ export default function Discover() {
           ).includes(t),
         ),
     );
+  const library = recipeLibrary
+    .filter((r) => libraryEligible(r, p))
+    .filter(
+      (r) =>
+        filter === "All recipes" ||
+        (filter === "Vegan" && r.category === "Vegan") ||
+        (filter === "Saved" && saved.includes(r.id)) || filter === "Community",
+    )
+    .filter((r) =>
+      normalize(
+        [
+          r.title,
+          r.cuisine,
+          r.category,
+          ...r.ingredients.map((i) => i.name),
+        ].join(" "),
+      ).includes(normalize(query)),
+    );
   return (
     <Screen>
       <Row style={{ justifyContent: "space-between" }}>
@@ -61,7 +78,7 @@ export default function Discover() {
         <IconButton
           icon={SlidersHorizontal}
           label="Recipe filters"
-          onPress={() => sheet.current?.present()}
+          onPress={() => setSheetOpen(true)}
         />
       </Row>
       <SearchBar
@@ -94,7 +111,8 @@ export default function Discover() {
         ))}
       </ScrollView>
       <T muted size={13}>
-        {result.length} recipes · tailored to your food preferences
+        {result.length + library.length} recipes · tailored to your food
+        preferences
       </T>
       <View style={{ gap: 8 }}>
         {result.map((r) => (
@@ -106,43 +124,73 @@ export default function Discover() {
           />
         ))}
       </View>
-      {!result.length ? (
+      {library.slice(0, visibleCount).map((r) => (
+        <Pressable
+          key={r.id}
+          accessibilityRole="button"
+          accessibilityLabel={r.title}
+          onPress={() =>
+            router.push({ pathname: "/library/[id]", params: { id: r.id } })
+          }
+        >
+          <Row>
+            <Image
+              source={r.image}
+              style={{ width: 96, height: 96, borderRadius: 16 }}
+              contentFit="cover"
+            />
+            <View style={{ flex: 1, gap: 6 }}>
+              <T bold size={17}>
+                {r.title}
+              </T>
+              <T muted size={12}>
+                {[r.cuisine, r.category].filter(Boolean).join(" · ")}
+              </T>
+              <T muted size={11}>
+                TheMealDB
+              </T>
+            </View>
+          </Row>
+        </Pressable>
+      ))}
+      {library.length > visibleCount ? (
+        <Button
+          label="Load more recipes"
+          secondary
+          onPress={() => setVisibleCount((n) => n + 20)}
+        />
+      ) : null}
+      {!result.length && !library.length ? (
         <Empty
           title="A fresh search?"
           body="Try an ingredient or a cuisine, or change the filters. Allergy exclusions are always applied."
         />
       ) : null}
-      <BottomSheetModal ref={sheet} snapPoints={["65%"]} enablePanDownToClose>
-        <BottomSheetView
-          style={{ padding: 24, gap: 20, backgroundColor: c.bg }}
-        >
-          <T bold size={26}>
-            Your kind of cooking
-          </T>
-          <T muted>Allergy exclusions always stay on.</T>
-          <Row style={{ flexWrap: "wrap" }}>
-            {[
-              "All recipes",
-              "Under 20 min",
-              "High protein",
-              "Vegan",
-              "Saved",
-              "Community",
-            ].map((f) => (
-              <Chip
-                key={f}
-                label={f}
-                selected={f === filter}
-                onPress={() => setFilter(f)}
-              />
-            ))}
-          </Row>
-          <Button
-            label="Show recipes"
-            onPress={() => sheet.current?.dismiss()}
-          />
-        </BottomSheetView>
-      </BottomSheetModal>
+      <CookSheet
+        visible={sheetOpen}
+        onClose={() => setSheetOpen(false)}
+        title="Your kind of cooking"
+      >
+        <T muted>Allergy exclusions always stay on.</T>
+        <Row style={{ flexWrap: "wrap" }}>
+          {[
+            "All recipes",
+            "Under 20 min",
+            "High protein",
+            "Vegan",
+            "Saved",
+            "Community",
+          ].map((f) => (
+            <Chip
+              key={f}
+              label={f}
+              selected={f === filter}
+              onPress={() => setFilter(f)}
+            />
+          ))}
+        </Row>
+        <Button label="Show recipes" onPress={() => setSheetOpen(false)} />
+      </CookSheet>
     </Screen>
   );
 }

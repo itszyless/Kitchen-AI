@@ -1,7 +1,6 @@
-import { useState } from "react";
-import { View, Platform } from "react-native";
-import { CameraView, useCameraPermissions } from "expo-camera";
-import { router } from "expo-router";
+import { useState, useCallback, useEffect } from "react";
+
+import { router, useLocalSearchParams } from "expo-router";
 import {
   Screen,
   Back,
@@ -18,19 +17,17 @@ import { useCook } from "@/state/store";
 import { useTheme } from "@/theme/useTheme";
 import { Unit } from "@/domain/types";
 export default function Barcode() {
-  const [permission, requestPermission] = useCameraPermissions();
-  const [camera, setCamera] = useState(false);
-  const [code, setCode] = useState("");
+  const { code: scannedCode } = useLocalSearchParams<{ code?: string }>();
+  const [code, setCode] = useState(scannedCode ?? "");
   const [message, setMessage] = useState("");
-  const [busy, setBusy] = useState(false);
+  const [busy, setBusy] = useState(Boolean(scannedCode));
   const [name, setName] = useState("");
   const [brand, setBrand] = useState("");
   const [quantity, setQuantity] = useState("1");
   const [unit, setUnit] = useState<Unit>("piece");
   const add = useCook((s) => s.addPantry);
   const c = useTheme();
-  const lookup = async (value: string) => {
-    setCamera(false);
+  const lookup = useCallback(async (value: string) => {
     setCode(value);
     if (!barcodeSchema.safeParse(value).success) {
       setMessage("Please enter a valid food barcode (8, 12, 13 or 14 digits).");
@@ -38,13 +35,30 @@ export default function Barcode() {
     }
     setBusy(true);
     try {
-      await products.lookup(value);
+      const product = await products.lookup(value);
+      setName(product?.name ?? "");
+      setBrand(product?.brand ?? "");
+      setMessage(
+        product
+          ? "Product found. Check the package label and amount before saving."
+          : "No match found. Add the product details below.",
+      );
     } catch (e) {
       setMessage(e instanceof Error ? e.message : "Lookup failed. Try again.");
     } finally {
       setBusy(false);
     }
-  };
+  }, []);
+  useEffect(() => {
+    if (!scannedCode) return;
+    let active = true;
+    void products.lookup(scannedCode).then(product => {
+      if (!active) return;
+      setName(product?.name ?? ""); setBrand(product?.brand ?? "");
+      setMessage(product ? "Product found. Check the package label and amount before saving." : "No match found. Add the product details below.");
+    }).catch(error => { if(active) setMessage(error instanceof Error ? error.message : "Lookup failed. Try again."); }).finally(() => { if(active) setBusy(false); });
+    return () => { active = false; };
+  }, [scannedCode]);
   const save = () => {
     const result = productSchema.safeParse({ name, brand, quantity, unit });
     if (!result.success) {
@@ -72,41 +86,12 @@ export default function Barcode() {
       <T bold size={32}>
         Meet your product.
       </T>
-      {camera && permission?.granted ? (
-        <View style={{ height: 280, borderRadius: 24, overflow: "hidden" }}>
-          <CameraView
-            style={{ flex: 1 }}
-            barcodeScannerSettings={{
-              barcodeTypes: ["ean13", "ean8", "upc_a", "upc_e"],
-            }}
-            onBarcodeScanned={(event) => void lookup(event.data)}
-          />
-        </View>
-      ) : null}
       <Button
-        label={camera ? "Close camera" : "Open barcode camera"}
-        onPress={async () => {
-          if (camera) {
-            setCamera(false);
-            return;
-          }
-          if (permission?.granted) {
-            setCamera(true);
-            return;
-          }
-          const response = await requestPermission();
-          if (response.granted) setCamera(true);
-          else
-            setMessage(
-              "Camera access is off. You can enter the barcode below.",
-            );
-        }}
+        label="Open camera"
+        onPress={() =>
+          router.replace({ pathname: "/capture", params: { mode: "barcode" } })
+        }
       />
-      {Platform.OS === "web" ? (
-        <T size={13} muted>
-          Camera scanning is best tested in Expo Go on your iPhone.
-        </T>
-      ) : null}
       <Field
         accessibilityLabel="Barcode digits"
         keyboardType="number-pad"
@@ -126,11 +111,10 @@ export default function Barcode() {
         </Panel>
       ) : null}
       <T bold size={24}>
-        Create a private product
+        Product details
       </T>
       <T size={14} muted>
-        Saved only in your pantry. Unverified products are not automatically
-        treated as safe recipe ingredients.
+        Check the package label and confirm the amount.
       </T>
       <Field
         accessibilityLabel="Product name"
@@ -161,10 +145,10 @@ export default function Barcode() {
           />
         ))}
       </Row>
-      <Button label="Save private product" onPress={save} />
+      <Button label="Add to pantry" onPress={save} />
       <T size={12} style={{ color: c.muted }}>
-        Open Food Facts integration is prepared separately. Live requests
-        require completing their API usage setup first.
+        Product data: Open Food Facts (ODbL). Coverage varies by country.
+        Missing allergen information never means a product is allergen-free.
       </T>
     </Screen>
   );

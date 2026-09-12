@@ -1,73 +1,111 @@
+<div align="center">
+<img src="assets/images/app-icon.png" width="96" alt="Cook app icon" />
+
 # Cook
+### What should I cook today?
 
-Good food. Less figuring out.
+A mobile cooking companion built with React Native and Expo.
 
-Cook is a native cooking-assistant project for iPhone and Android, built on Windows with Expo. This is a working development milestone, not a production release.
+**AI-Assisted Development · Learning Project · Version 0.1.0**
+</div>
 
-## What works now
+## About
 
-- Guest onboarding with explicit allergy confirmation, diet, time, skill, household and region preferences.
-- Home recommendations, Discover search/filters and saved recipes.
-- Persistent pantry entries, quantity controls, expiry entry, deletion with undo.
-- Clearly labeled sample scan review with editable quantities, corrected matches and confirmation.
-- Barcode camera capture and validated private-product entry. Live lookup is not connected.
-- Recipe detail, serving scaling, quantity-based pantry matching and structured substitution suggestions.
-- Merged shopping list, guided steps, beginner help, timer and meal completion.
-- Light, dark and system themes; safe-area-aware navigation and large controls.
+Cook brings recipes, pantry ingredients, shopping lists and guided cooking into one app. The goal is to make everyday cooking easier while learning how a mobile application connects its interface, data and external services.
 
-## Stack
+This repository contains the first working development version. It is still being improved and is not an App Store release.
 
-Expo 57, React Native 0.86.3, React 19.2.3, TypeScript 6 strict, Expo Router, Zustand, AsyncStorage, Zod, Supabase JS, Lucide, Expo Camera/Image/Haptics/KeepAwake/SecureStore. Node 22.13+; this machine uses 22.14.
+## Features
 
-## Run on Windows
+- Focused onboarding with age, food preferences and searchable allergy choices.
+- Recipe discovery, saved recipes and a collection of 790 recipes with photos and instructions from TheMealDB.
+- Pantry quantities, ingredient matching and shopping lists.
+- Guided cooking with readable steps and timers.
+- Product search by country and barcode lookup through Open Food Facts.
+- A shared camera interface for ingredients, fridge photos and barcodes.
+- AI-assisted photo recognition and recipe-specific substitution suggestions.
+- Email authentication through Supabase.
+- English and German interface support, with recipe translation and an original-text option.
+- Light and dark themes with a phone-first layout.
 
-Open this folder in VS Code. In its terminal:
+Camera behavior still needs testing on physical devices. AI and product results depend on external services and should be reviewed by the user, especially for allergies.
 
-```powershell
+## Technology
+
+| Area | Tools |
+| --- | --- |
+| Mobile interface | React Native, Expo SDK 57, Expo Router |
+| Application code | TypeScript, React |
+| State and storage | Zustand, AsyncStorage, SecureStore |
+| Backend | Supabase Auth, PostgreSQL, Edge Functions |
+| AI | Groq, accessed through a server-side function |
+| Food data | Open Food Facts, TheMealDB |
+| Quality checks | TypeScript, ESLint, Vitest, database policy tests |
+
+## AI-Assisted Development
+
+AI was used extensively as a development assistant. This includes generating and revising code, exploring interface ideas, debugging errors, writing tests and preparing documentation. This project is not presented as entirely hand-written work.
+
+My role included defining the product idea, describing the intended behavior, writing and refining prompts, giving design feedback, testing flows and deciding which changes to keep. Working this way helped me understand that a convincing generated result still needs testing, careful review and iteration.
+
+### What I learned
+
+- **React Native:** How screens, reusable components, navigation and application state fit together.
+- **Expo and Expo Go:** How to run a mobile project, use a phone preview and understand the difference between a preview and a release build.
+- **Supabase:** Initial experience with authentication, database tables, access policies and server-side functions.
+- **Google Cloud:** Basic familiarity with the console and OAuth configuration. Google sign-in is not yet fully configured in this version.
+- **AI prompting and vibe coding:** How to turn an idea into smaller requests, provide useful feedback and refine generated implementations.
+- **Debugging:** How runtime errors, type checks and tests help reveal problems that are not obvious from the interface.
+- **API integration:** Why external services need validation, error handling, usage limits and protected credentials.
+
+These are areas of growing practical experience, rather than claims of expert knowledge. The project also showed me where I need to deepen my independent understanding of the generated code.
+
+## Run locally
+
+Use Node.js 22.13 or later and an Expo Go version compatible with SDK 57.
+
+```sh
 npm ci
+```
+
+Copy `.env.example` to `.env`, then enter your own Supabase project URL and public publishable key. Authentication requires a configured Supabase project. Never add an AI key or a Supabase service-role key to an `EXPO_PUBLIC_` variable.
+
+```sh
 npm start
 ```
 
-Open Expo Go on an iPhone on the same network and scan the terminal QR with the iPhone Camera. Update Expo Go to the version supporting SDK 57. No iOS emulator is needed on Windows. Fast Refresh applies when source files are saved.
+Scan the displayed QR code with your phone on the same network. For a browser preview:
 
-This machine needed its Windows trusted certificate roots made available to Node. The provided script does that only for its process, without disabling certificate validation or changing system settings:
-
-```powershell
-.\scripts\Start-Cook.ps1
+```sh
+npm run web
 ```
 
-For a browser preview run npm run web. The web target is a single-page preview; the mobile app still uses native React Native components. If the iPhone cannot connect, verify both devices are on the same non-isolated network. Network/firewall permission changes must be made by the owner. No tunnel or public hosting is enabled.
+On Windows, `scripts/Start-Cook.ps1` is available if Node needs the Windows trusted certificate roots. Run the script as a file, rather than pasting its contents into a terminal.
 
-## Verify
+The SQL migrations and seed are in `supabase/`. The `kitchen-ai` function requires server-side `GROQ_API_KEY` and `GROQ_MODEL` secrets. Its handler validates the signed-in user and enforces usage limits. No hosted credentials are supplied in this repository.
 
-```powershell
+## Checks
+
+```sh
 npm run check
 npm run test:db
-npx expo-doctor
-npm run export
-npx expo export --platform ios --output-dir dist-ios
 ```
 
-The database test uses embedded Postgres with auth/storage stand-ins. It validates SQL and policies, not live Supabase authentication. A successful iOS export validates the JavaScript/Hermes bundle, not native signing, camera permission behavior, or installation on an iPhone.
+The first command runs TypeScript, lint and unit tests. Database tests use embedded PostgreSQL with authentication stand-ins. They do not replace tests against a deployed backend. An iOS JavaScript export also does not prove that native camera behavior or store signing works.
 
-## Supabase connection
+## Current limits
 
-No hosted project has been created or modified. Copy .env.example to .env and enter only the project URL and public publishable key after the owner completes setup. No secrets belong in EXPO_PUBLIC variables.
+- Pantry and other kitchen state are stored on the device. Complete account-based cloud synchronization is unfinished.
+- Google sign-in still needs provider configuration. Apple sign-in is deferred.
+- Cook Plus is currently free. Paid billing is not connected.
+- Translation coverage and physical-device testing are still being improved.
+- Imported recipes have limited verified dietary metadata, so preference filtering is conservative.
+- Store submission, account deletion and final privacy documentation remain release work.
 
-The migration in supabase/migrations prepares profiles/preferences, allergies, ingredient aliases, source-aware products/barcodes, private products, pantry, recipes/steps/ingredients, saves, shopping, reports and scan metadata, with privileges and RLS. The seed supplies the small original ingredient catalog. A live recipe repository, auth screen, idempotent guest import and cloud sync are still required; setting environment variables alone does not enable them.
+## Data and publishing
 
-Before applying migration: confirm a new Free-tier project with the owner, inspect the migration, apply to that project only, run live RLS tests with two users, and configure auth callbacks. Never paste service-role keys into the app or commit .env.
+TheMealDB recipes are retained for development. **A suitable license must be purchased and its terms checked before publishing the app.** This was deliberately deferred until launch, and is recorded in the [release checklist](docs/RELEASE.md).
 
-## Expo Go and future native builds
+Open Food Facts data and third-party assets retain their respective terms. See [third-party notices](THIRD_PARTY_NOTICES.md). No license for original Cook code is granted by this README.
 
-Camera barcode capture, local UI, storage, haptics and guided cooking are intended for Expo Go. Test them on the real phone. Custom native modules, some authentication integrations, background notification behavior, and store distribution need a development/release build.
-
-Use Expo Continuous Native Generation. On the future Mac, install the compatible Xcode version, run npx expo prebuild --platform ios, then npx expo run:ios. Native project folders are generated and ignored. Configure permanent bundle identifiers, entitlements, signing and Apple/Google accounts only with owner approval. EAS setup can be added later; no paid enrollment or remote build has been initiated.
-
-## Assets and privacy
-
-The Cook C/leaf icon is an explicitly replaceable placeholder. The editable source is assets/images/cook-placeholder.svg. Header branding is centralized in src/theme/tokens.ts and native asset references in app.json. The owner's real desktop logo can replace the placeholder later.
-
-Recipe photos are illustrative remote Unsplash images, not photos of these exact recipes. Sample nutrition is clearly labeled and unverified. Local kitchen data remains on the device. No analytics collection, monetization, AI upload or retailer link is enabled.
-
-See [architecture](docs/ARCHITECTURE.md), [research and sources](docs/RESEARCH.md), and [remaining work](docs/NEXT.md).
+Local environment files, credentials, generated builds and QA account files are excluded from Git.

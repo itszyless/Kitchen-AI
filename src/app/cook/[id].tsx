@@ -1,3 +1,4 @@
+import { useLanguage } from "@/i18n";
 import { useEffect, useState, useRef } from "react";
 import { AppState } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
@@ -35,6 +36,8 @@ export default function Cooking() {
   const [timerDone, setTimerDone] = useState(false);
   const completed = useRef(false);
   const c = useTheme();
+  const language = useLanguage(s => s.language);
+  const [original, setOriginal] = useState(false);
   useEffect(() => {
     if (!end) return;
     const tick = () => {
@@ -92,7 +95,6 @@ export default function Cooking() {
     <Screen
       footer={
         <>
-          {" "}
           <Button
             label={
               step === r.steps.length - 1 ? "I’m done — let’s eat" : "Next step"
@@ -137,12 +139,13 @@ export default function Cooking() {
       <T size={13} bold muted>
         STEP {step + 1} OF {r.steps.length}
       </T>
-      <T size={34} bold>
+      <T size={34} bold original={original}>
         {current.title}
       </T>
-      <T size={21} style={{ lineHeight: 33 }}>
+      <T size={21} original={original} style={{ lineHeight: 33 }}>
         {current.body}
       </T>
+      {language === "de" ? <Button secondary label={original ? "Show translation" : "Show original"} onPress={() => setOriginal(!original)} /> : null}
       <Button
         secondary
         label={tip ? "Hide the little extra help" : "A little extra help"}
@@ -150,7 +153,7 @@ export default function Cooking() {
       />
       {tip ? (
         <Panel>
-          <T size={18}>{current.tip}</T>
+          <T size={18} original={original}>{current.tip}</T>
         </Panel>
       ) : null}
       {current.seconds && !end ? (
@@ -181,8 +184,7 @@ export default function Cooking() {
         </T>
       ) : null}
       <T size={12} muted>
-        Keep Cook open for timer alerts. Background notifications are not
-        enabled in this preview.
+        Keep Cook open for timer alerts.
       </T>
     </Screen>
   );

@@ -1,3 +1,4 @@
+import { LanguagePicker } from "@/components/LanguagePicker";
 import { router } from "expo-router";
 import { View, Pressable } from "react-native";
 import {
@@ -10,7 +11,12 @@ import { Screen, T, Panel, Chip, Row } from "@/components/ui";
 import { useCook } from "@/state/store";
 import { useTheme } from "@/theme/useTheme";
 import { allergens } from "@/domain/types";
+import { useAuth } from "@/services/supabase/AuthProvider";
+import { supabase } from "@/services/supabase/client";
+import { membership } from "@/services/entitlements";
+import { Button } from "@/components/ui";
 export default function Profile() {
+  const { session } = useAuth();
   const p = useCook((s) => s.preferences);
   const update = useCook((s) => s.updatePreferences);
   const theme = useCook((s) => s.theme);
@@ -19,6 +25,7 @@ export default function Profile() {
   const c = useTheme();
   return (
     <Screen>
+      <LanguagePicker />
       <Row>
         <T size={32} bold>
           Profile
@@ -42,10 +49,28 @@ export default function Profile() {
             Home cook
           </T>
           <T muted size={13}>
-            {completed} {completed === 1 ? "meal" : "meals"} made · Guest
+            {completed} {completed === 1 ? "meal" : "meals"} made
           </T>
         </View>
       </Row>
+      <T bold size={14}>
+        {membership.label}
+      </T>
+      <T muted size={12}>
+        Included with your account.
+      </T>
+      {session?.user.email ? (
+        <T muted size={13}>
+          {session.user.email}
+        </T>
+      ) : null}
+      <Button
+        label="Sign out"
+        secondary
+        onPress={() => {
+          void supabase?.auth.signOut();
+        }}
+      />
       <View>
         {[
           {
@@ -137,14 +162,13 @@ export default function Profile() {
       <Panel>
         <T bold>Private by default</T>
         <T size={14}>
-          This preview stores kitchen data on this device. No analytics, ads,
-          subscriptions or AI uploads are active. Recipe photos load from
-          Unsplash when online.
+          Your kitchen is saved on this device. When you scan a photo or ask for
+          a substitution, the information needed for that request is sent to our
+          AI provider.
         </T>
       </Panel>
       <T size={12} muted>
-        Cook 0.1 · Development preview. Account deletion, data export and legal
-        pages are release prerequisites.
+        Cook · Made for your everyday kitchen.
       </T>
     </Screen>
   );

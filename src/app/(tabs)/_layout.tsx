@@ -1,4 +1,5 @@
-import { Redirect } from "expo-router";
+import { useTranslate } from "@/i18n";
+import { Redirect, router } from "expo-router";
 import {
   Tabs,
   TabList,
@@ -18,7 +19,8 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useCook } from "@/state/store";
 import { useTheme } from "@/theme/useTheme";
-import { T } from "@/components/ui";
+import { T, Loading } from "@/components/ui";
+import { useAuth } from "@/services/supabase/AuthProvider";
 function Tab({
   icon: Icon,
   label,
@@ -31,11 +33,12 @@ function Tab({
   center?: boolean;
 }) {
   const c = useTheme();
+  const t = useTranslate();
   return (
     <Pressable
       {...props}
       accessibilityRole="tab"
-      accessibilityLabel={label}
+      accessibilityLabel={t(label)}
       accessibilityState={{ selected: isFocused }}
       aria-selected={isFocused}
       style={{
@@ -69,10 +72,13 @@ function Tab({
   );
 }
 export default function Layout() {
+  const { session, ready } = useAuth();
   const onboarded = useCook((s) => s.onboarded);
   const c = useTheme();
   const insets = useSafeAreaInsets();
   if (!onboarded) return <Redirect href="/onboarding" />;
+  if (!ready) return <Loading />;
+  if (!session) return <Redirect href="/auth" />;
   return (
     <Tabs style={{ flex: 1, backgroundColor: c.bg }}>
       <TabSlot style={{ flex: 1 }} />
@@ -96,7 +102,12 @@ export default function Layout() {
           <Tab icon={Compass} label="Discover" />
         </TabTrigger>
         <TabTrigger name="scan" href="/scan" asChild>
-          <Tab icon={ScanLine} label="Scan" center />
+          <Tab
+            icon={ScanLine}
+            label="Scan"
+            center
+            onPress={() => router.push("/capture")}
+          />
         </TabTrigger>
         <TabTrigger name="pantry" href="/pantry" asChild>
           <Tab icon={Refrigerator} label="Pantry" />

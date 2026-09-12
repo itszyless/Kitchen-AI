@@ -2,7 +2,16 @@ import { createId } from "@/domain/id";
 import { useState } from "react";
 import { Pressable, View } from "react-native";
 import { router } from "expo-router";
-import { Screen, T, Field, SearchBar, Button, Row, Chip, Back } from "@/components/ui";
+import {
+  Screen,
+  T,
+  Field,
+  SearchBar,
+  Button,
+  Row,
+  Chip,
+  Back,
+} from "@/components/ui";
 import { searchIngredients } from "@/domain/matching";
 import { useCook } from "@/state/store";
 import { useTheme } from "@/theme/useTheme";
@@ -43,7 +52,11 @@ export default function Add() {
     router.replace("/pantry");
   };
   return (
-    <Screen footer={<Button label="Add to pantry" disabled={!selected} onPress={save} />}>
+    <Screen
+      footer={
+        <Button label="Add to pantry" disabled={!selected} onPress={save} />
+      }
+    >
       <Back title="Add to your pantry" />
       <T bold size={32}>
         Find an ingredient
@@ -86,8 +99,15 @@ export default function Add() {
         ))}
       </View>
       {!items.length ? (
-        <T muted>No matching ingredient in the preview catalog.</T>
+        <T muted>
+          No matching ingredient. Try searching food products instead.
+        </T>
       ) : null}
+      <Button
+        secondary
+        label="Search food products"
+        onPress={() => router.push("/products")}
+      />
       <T bold>How much?</T>
       <Field
         accessibilityLabel="Quantity"

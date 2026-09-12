@@ -3,7 +3,6 @@
   "main": "expo-router/entry",
   "version": "0.1.0",
   "dependencies": {
-    "@expo-google-fonts/plus-jakarta-sans": "^0.4.2",
     "@expo/ui": "~57.0.17",
     "@react-native-async-storage/async-storage": "2.2.0",
     "@supabase/supabase-js": "^2.116.0",
@@ -15,6 +14,8 @@
     "expo-glass-effect": "~57.0.2",
     "expo-haptics": "~57.0.2",
     "expo-image": "~57.0.4",
+    "expo-image-manipulator": "~57.0.16",
+    "expo-image-picker": "~57.0.16",
     "expo-keep-awake": "~57.0.1",
     "expo-linking": "~57.0.9",
     "expo-localization": "~57.0.1",
@@ -44,6 +45,7 @@
     "@electric-sql/pglite": "^0.5.8",
     "@eslint/js": "^10.0.1",
     "@playwright/test": "^1.63.0",
+    "@types/node": "^22.20.2",
     "@types/react": "~19.2.2",
     "eslint": "^10.10.0",
     "eslint-plugin-react-hooks": "^7.1.1",
@@ -63,7 +65,7 @@
     "format": "prettier --write src tests docs *.json *.md",
     "check": "npm run typecheck && npm run lint && npm test",
     "export": "expo export --platform web",
-    "test:db": "node supabase/tests/policies.mjs supabase/migrations/202609080001_foundation.sql"
+    "test:db": "node supabase/tests/policies.mjs supabase/migrations/202609080001_foundation.sql supabase/migrations/202609100001_ai_quota.sql"
   },
   "private": true,
   "engines": {

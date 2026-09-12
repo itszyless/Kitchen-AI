@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { View } from "react-native";
+import { Image } from "expo-image";
+import { useScan } from "@/state/scan";
 import { router } from "expo-router";
 import { Trash2, CheckCircle2 } from "lucide-react-native";
 import {
@@ -12,14 +14,16 @@ import {
   Chip,
   IconButton,
 } from "@/components/ui";
-import { sampleCandidates } from "@/services/ai/provider";
 import { ingredients, ingredientById } from "@/data/catalog";
 import { useCook } from "@/state/store";
 import { useTheme } from "@/theme/useTheme";
 import { quantitySchema } from "@/features/pantry/validation";
 export default function Review() {
+  const candidates = useScan((s) => s.candidates);
+  const photo = useScan((s) => s.photo);
+  const clearScan = useScan((s) => s.clear);
   const [items, setItems] = useState(
-    sampleCandidates.map((c) => ({
+    candidates.map((c) => ({
       ...c,
       item: { ...c.item },
       amount: String(c.item.quantity),
@@ -41,6 +45,7 @@ export default function Review() {
         quantity: Number(i.amount),
       })),
     );
+    clearScan();
     router.replace("/pantry");
   };
   return (
@@ -60,10 +65,22 @@ export default function Review() {
       <Row>
         <CheckCircle2 color={c.text} size={24} />
         <T muted size={13} style={{ flex: 1 }}>
-          Sample results · No photo analyzed. Check names and amounts before
-          adding.
+          Recognition suggestions · Check every name and amount.
         </T>
       </Row>
+      {photo ? (
+        <Image
+          source={photo}
+          contentFit="cover"
+          style={{ height: 180, borderRadius: 20 }}
+        />
+      ) : null}
+      {!items.length ? (
+        <Button
+          label="Scan a photo"
+          onPress={() => router.replace("/capture")}
+        />
+      ) : null}
       {items.map((entry) => (
         <View
           key={entry.item.id}
@@ -83,7 +100,7 @@ export default function Review() {
                 {entry.confidence < 0.8
                   ? "Please check this match"
                   : "Suggested match"}{" "}
-                · sample
+                · check amount
               </T>
             </View>
             <IconButton
@@ -108,7 +125,24 @@ export default function Review() {
               }
               style={{ flex: 1 }}
             />
-            <T>{entry.item.unit}</T>
+            <Row>
+              {(["g", "ml", "piece"] as const).map((unit) => (
+                <Chip
+                  key={unit}
+                  label={unit}
+                  selected={entry.item.unit === unit}
+                  onPress={() =>
+                    setItems(
+                      items.map((i) =>
+                        i.item.id === entry.item.id
+                          ? { ...i, item: { ...i.item, unit } }
+                          : i,
+                      ),
+                    )
+                  }
+                />
+              ))}
+            </Row>
             <Chip
               label="Correct"
               onPress={() =>

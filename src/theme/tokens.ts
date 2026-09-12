@@ -14,11 +14,7 @@ export const tokens = {
     largeTitle: 30,
     display: 34,
   },
-  font: {
-    regular: "PlusJakartaSans_400Regular",
-    medium: "PlusJakartaSans_600SemiBold",
-    bold: "PlusJakartaSans_800ExtraBold",
-  },
+  font: { regular: "400", medium: "600", bold: "700" },
   motion: {
     quick: 140,
     normal: 240,

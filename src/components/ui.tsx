@@ -1,4 +1,4 @@
-import { PropsWithChildren, ReactNode } from "react";
+import { PropsWithChildren, ReactNode, Children } from "react";
 import {
   ActivityIndicator,
   Pressable,
@@ -30,16 +30,27 @@ import {
 import { router } from "expo-router";
 import * as Haptics from "expo-haptics";
 import { useTheme } from "@/theme/useTheme";
+import { useTranslate } from "@/i18n";
 import { tokens } from "@/theme/tokens";
+import { Image } from "expo-image";
+import appIcon from "../../assets/images/app-icon.png";
 export function T({
   children,
   size = 16,
   muted = false,
   bold = false,
+  original = false,
   style,
   ...props
-}: TextProps & { size?: number; muted?: boolean; bold?: boolean }) {
+}: TextProps & { size?: number; muted?: boolean; bold?: boolean; original?: boolean }) {
   const c = useTheme();
+  const t = useTranslate();
+  const parts = Children.toArray(children);
+  const text = original ? children : parts.every(
+    (part) => typeof part === "string" || typeof part === "number",
+  )
+    ? t(parts.join(""))
+    : parts.map((part) => (typeof part === "string" ? t(part) : part));
   return (
     <Text
       {...props}
@@ -48,13 +59,13 @@ export function T({
           fontSize: size,
           lineHeight: size * (size >= 28 ? 1.15 : 1.45),
           color: muted ? c.muted : c.text,
-          fontFamily: bold ? tokens.font.bold : tokens.font.regular,
+          fontWeight: bold ? "700" : "400",
           letterSpacing: size >= 24 ? -0.9 : 0,
         },
         style,
       ]}
     >
-      {children}
+      {text}
     </Text>
   );
 }
@@ -192,10 +203,11 @@ export function IconButton({
   active?: boolean;
 }) {
   const c = useTheme();
+  const t = useTranslate();
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityLabel={label}
+      accessibilityLabel={t(label)}
       onPress={onPress}
       style={({ pressed }) => ({
         width: 44,
@@ -254,10 +266,15 @@ export function Chip({
 }
 export function Field(props: TextInputProps) {
   const c = useTheme();
+  const t = useTranslate();
   return (
     <TextInput
       placeholderTextColor={c.muted}
       {...props}
+      placeholder={props.placeholder ? t(props.placeholder) : undefined}
+      accessibilityLabel={
+        props.accessibilityLabel ? t(props.accessibilityLabel) : undefined
+      }
       style={[
         {
           borderWidth: 1,
@@ -269,7 +286,6 @@ export function Field(props: TextInputProps) {
           color: c.text,
           backgroundColor: c.surface,
           fontSize: 15,
-          fontFamily: tokens.font.regular,
         },
         props.style,
       ]}
@@ -352,8 +368,14 @@ export function Loading() {
         gap: 16,
       }}
     >
+      <Image
+        source={appIcon}
+        style={{ width: 96, height: 96, borderRadius: 24 }}
+      />
+      <T size={36} bold>
+        COOK
+      </T>
       <ActivityIndicator color={c.primary} />
-      <T>Getting your kitchen ready…</T>
     </View>
   );
 }

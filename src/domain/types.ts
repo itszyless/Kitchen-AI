@@ -54,6 +54,9 @@ export type Recipe = {
   steps: { title: string; body: string; tip: string; seconds?: number }[];
 };
 export type Preferences = {
+  age?: number;
+  customAllergies?: string[];
+  foodPreferences?: string[];
   country: string;
   allergies: Allergen[];
   diet: "Anything" | "Vegetarian" | "Vegan";

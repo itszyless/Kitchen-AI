@@ -30,14 +30,14 @@ export default function Scan() {
           {
             icon: Refrigerator,
             title: "Scan fridge",
-            body: "Review a sample fridge scan",
-            route: "/review" as const,
+            body: "Recognize food from a photo",
+            route: "/capture" as const,
           },
           {
             icon: Carrot,
             title: "Scan ingredients",
-            body: "Try the ingredient review demo",
-            route: "/review" as const,
+            body: "Take a photo of your ingredients",
+            route: "/capture" as const,
           },
           {
             icon: Barcode,
@@ -56,7 +56,22 @@ export default function Scan() {
             key={title}
             accessibilityRole="button"
             accessibilityLabel={title}
-            onPress={() => router.push(route)}
+            onPress={() =>
+              route === "/capture"
+                ? router.push({
+                    pathname: "/capture",
+                    params: {
+                      mode:
+                        title === "Scan ingredients" ? "ingredients" : "fridge",
+                    },
+                  })
+                : route === "/barcode"
+                  ? router.push({
+                      pathname: "/capture",
+                      params: { mode: "barcode" },
+                    })
+                  : router.push(route)
+            }
             style={{
               paddingVertical: 18,
               borderBottomWidth: 1,
@@ -90,8 +105,8 @@ export default function Scan() {
         ))}
       </View>
       <T muted size={12}>
-        Photo recognition is a demo for now. You review every item before it
-        reaches your pantry; no photos are uploaded.
+        Review every item before it reaches your pantry. You choose which photo
+        to send for recognition.
       </T>
     </Screen>
   );

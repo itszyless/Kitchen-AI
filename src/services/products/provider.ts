@@ -22,11 +22,59 @@ export type ProductResult = {
 export interface ProductProvider {
   lookup(barcode: string): Promise<ProductResult | null>;
 }
+const cache = new Map<
+  string,
+  { expires: number; value: ProductResult | null }
+>();
+const requests: number[] = [];
 export const products: ProductProvider = {
   async lookup(code) {
     barcodeSchema.parse(code);
-    throw new Error(
-      "The live product database is not connected yet. You can enter this product privately below.",
-    );
+    const hit = cache.get(code);
+    if (hit && hit.expires > Date.now()) return hit.value;
+    while (requests.length && requests[0] < Date.now() - 60_000)
+      requests.shift();
+    if (requests.length >= 12)
+      throw new Error("Please wait a minute before looking up more products.");
+    requests.push(Date.now());
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 12_000);
+    try {
+      const response = await fetch(
+        `https://world.openfoodfacts.org/api/v2/product/${code}?fields=code,product_name,brands,allergens_tags,allergens`,
+        { signal: controller.signal },
+      );
+      if (response.status === 404) return null;
+      if (!response.ok)
+        throw new Error(
+          "Product search is unavailable right now. Please try again.",
+        );
+      const data = await response.json();
+      const product = data.product;
+      const value: ProductResult | null =
+        data.status === 1 &&
+        typeof product?.product_name === "string" &&
+        product.product_name.trim()
+          ? {
+              id: `off-${code}`,
+              barcode: code,
+              name: product.product_name.trim(),
+              brand: typeof product.brands === "string" ? product.brands : "",
+              source: "openfoodfacts",
+              allergenStatus: product.allergens_tags?.length
+                ? "declared"
+                : "unknown",
+              allergens: Array.isArray(product.allergens_tags)
+                ? product.allergens_tags.filter(
+                    (a: unknown): a is string => typeof a === "string",
+                  )
+                : [],
+            }
+          : null;
+      cache.set(code, { value, expires: Date.now() + 24 * 60 * 60_000 });
+      return value;
+    } finally {
+      clearTimeout(timeout);
+    }
   },
 };

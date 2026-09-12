@@ -251,8 +251,8 @@ export const recipes: Recipe[] = [
     calories: 460,
     cuisine: "Everyday",
     tags: ["Vegetarian"],
-    author: "Maya • sample community recipe",
-    source: "Community",
+    author: "The Cook kitchen",
+    source: "Cook",
     ingredients: [
       { ingredientId: "potato", quantity: 400, unit: "g" },
       { ingredientId: "egg", quantity: 4, unit: "piece" },

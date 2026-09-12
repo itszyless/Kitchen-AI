@@ -28,6 +28,20 @@ export function safeIngredient(id: string, allergies: Allergen[]) {
 }
 export function eligible(recipe: Recipe, p: Preferences) {
   return (
+    !(p.customAllergies ?? []).some((allergy) =>
+      recipe.ingredients.some(({ ingredientId }) => {
+        const ingredient = ingredientById[ingredientId];
+        return (
+          !ingredient ||
+          [ingredient.name, ...ingredient.aliases].some((name) =>
+            normalize(name).includes(normalize(allergy)),
+          )
+        );
+      }),
+    ) &&
+    (p.foodPreferences ?? []).every((preference) =>
+      recipe.tags.includes(preference),
+    ) &&
     recipe.ingredients.every((i) =>
       safeIngredient(i.ingredientId, p.allergies),
     ) &&

@@ -23,3 +23,9 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+
+## Food data and branding
+
+The imported recipe collection and its remote photographs come from TheMealDB. Development access does not establish App Store distribution rights. See docs/RELEASE.md before publishing.
+
+Product results come from Open Food Facts and retain their source licensing and attribution requirements. Google sign-in branding belongs to Google. Third-party data and marks are not covered by any license for original Cook code.
