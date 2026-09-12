@@ -80,6 +80,16 @@ export async function searchProducts(
     if (cache.size >= 100) cache.delete(cache.keys().next().value!);
     cache.set(key, { at: Date.now(), products });
     return products;
+  } catch (error) {
+    if (
+      error instanceof TypeError ||
+      (error instanceof Error && error.name === "AbortError")
+    ) {
+      throw new Error(
+        "Product search could not connect. Check your connection and try again.",
+      );
+    }
+    throw error;
   } finally {
     clearTimeout(timeout);
     signal?.removeEventListener("abort", abort);

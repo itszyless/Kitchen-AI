@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { View, Pressable, Platform, AppState } from "react-native";
+import { View, Pressable, Platform, AppState, Linking } from "react-native";
+import { StatusBar } from "expo-status-bar";
 import { CameraView, useCameraPermissions } from "expo-camera";
 import * as ImagePicker from "expo-image-picker";
 import { ImageManipulator, SaveFormat } from "expo-image-manipulator";
@@ -21,7 +22,22 @@ export default function Capture() {
         ? "Ingredients"
         : "Fridge",
   );
-  const [permission, requestPermission] = useCameraPermissions();
+  const [permission, requestPermission, getPermission] = useCameraPermissions();
+  const permissionAsked = useRef(false);
+  useEffect(() => {
+    if (
+      Platform.OS === "web" ||
+      !permission ||
+      permission.granted ||
+      !permission.canAskAgain ||
+      permissionAsked.current
+    )
+      return;
+    permissionAsked.current = true;
+    void requestPermission().catch(() => {});
+  }, [permission, requestPermission]);
+  const close = () =>
+    router.canGoBack() ? router.back() : router.replace("/");
   const [active, setActive] = useState(AppState.currentState === "active");
   const [focused, setFocused] = useState(true);
   useFocusEffect(
@@ -31,11 +47,12 @@ export default function Capture() {
     }, []),
   );
   useEffect(() => {
-    const subscription = AppState.addEventListener("change", (state) =>
-      setActive(state === "active"),
-    );
+    const subscription = AppState.addEventListener("change", (state) => {
+      setActive(state === "active");
+      if (state === "active" && Platform.OS !== "web") void getPermission();
+    });
     return () => subscription.remove();
-  }, []);
+  }, [getPermission]);
   const [ready, setReady] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -157,14 +174,27 @@ export default function Capture() {
         </T>
         {Platform.OS !== "web" ? (
           <Button
-            label="Open camera"
-            onPress={() => void requestPermission()}
+            label={
+              permission?.canAskAgain === false
+                ? "Open settings"
+                : "Open camera"
+            }
+            onPress={() =>
+              void (permission?.canAskAgain === false
+                ? Linking.openSettings()
+                : requestPermission())
+            }
           />
         ) : null}
         <Button
           label={busy ? "Scanning…" : "Choose photo"}
           disabled={busy}
           onPress={() => void pick()}
+        />
+        <Button
+          secondary
+          label="Search ingredients"
+          onPress={() => router.push("/add")}
         />
         <Button
           label="Search food products"
@@ -185,6 +215,7 @@ export default function Capture() {
     );
   return (
     <View style={{ flex: 1, backgroundColor: "#101113" }}>
+      <StatusBar style="light" />
       <CameraView
         active={active && focused}
         ref={camera}
@@ -199,6 +230,8 @@ export default function Capture() {
           mode === "Barcode"
             ? (event) => {
                 if (
+                  !active ||
+                  !focused ||
                   inFlight.current ||
                   !barcodeSchema.safeParse(event.data).success
                 )
@@ -293,7 +326,7 @@ export default function Capture() {
               padding: 5,
             }}
           >
-            {(["Fridge", "Ingredients", "Barcode"] as const).map((m) => (
+            {(["Barcode", "Fridge", "Ingredients"] as const).map((m) => (
               <Pressable
                 key={m}
                 accessibilityRole="tab"
@@ -319,11 +352,35 @@ export default function Capture() {
                     color: mode === m ? "white" : "#171719",
                   }}
                 >
-                  {m}
+                  {m === "Ingredients" ? "Item" : m}
                 </T>
               </Pressable>
             ))}
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Close camera"
+              onPress={close}
+              style={{ flex: 1, minHeight: 44, justifyContent: "center" }}
+            >
+              <T
+                size={13}
+                bold
+                style={{ textAlign: "center", color: "#171719" }}
+              >
+                Close
+              </T>
+            </Pressable>
           </View>
+          <Pressable
+            accessibilityRole="button"
+            onPress={() => router.push("/add")}
+            disabled={busy}
+            style={{ minHeight: 44, justifyContent: "center" }}
+          >
+            <T bold style={{ color: "white", textAlign: "center" }}>
+              Search ingredients or products
+            </T>
+          </Pressable>
           <View
             style={{
               flexDirection: "row",

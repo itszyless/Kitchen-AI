@@ -101,14 +101,14 @@ export default function Layout() {
         <TabTrigger name="discover" href="/discover" asChild>
           <Tab icon={Compass} label="Discover" />
         </TabTrigger>
-        <TabTrigger name="scan" href="/scan" asChild>
+        <View style={{ flex: 1 }}>
           <Tab
             icon={ScanLine}
             label="Scan"
             center
             onPress={() => router.push("/capture")}
           />
-        </TabTrigger>
+        </View>
         <TabTrigger name="pantry" href="/pantry" asChild>
           <Tab icon={Refrigerator} label="Pantry" />
         </TabTrigger>

@@ -6,7 +6,7 @@
 
 A mobile cooking companion built with React Native and Expo.
 
-**AI-Assisted Development · Learning Project · Version 0.1.0**
+**AI-Assisted Development · Learning Project · Version 0.1.1**
 </div>
 
 ## About
@@ -14,6 +14,10 @@ A mobile cooking companion built with React Native and Expo.
 Cook brings recipes, pantry ingredients, shopping lists and guided cooking into one app. The goal is to make everyday cooking easier while learning how a mobile application connects its interface, data and external services.
 
 This repository contains the first working development version. It is still being improved and is not an App Store release.
+
+## Latest update
+
+Version 0.1.1 opens the camera directly from Scan, requests camera permission on entry, offers a Settings shortcut when permission is blocked, and adds bottom Barcode, Fridge, Item and Close controls. Ingredient and product search are accessible from the camera. Physical-device verification remains pending.
 
 ## Features
 

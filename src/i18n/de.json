@@ -544,5 +544,9 @@
   "Seafood": "Fisch & Meeresfrüchte",
   "Side": "Beilage",
   "Starter": "Vorspeise",
-  "Always check ingredient labels and allergy cross-contact risks.": "Prüfe immer die Zutatenliste und mögliche Kreuzkontakte mit Allergenen."
+  "Always check ingredient labels and allergy cross-contact risks.": "Prüfe immer die Zutatenliste und mögliche Kreuzkontakte mit Allergenen.",
+  "Item": "Artikel",
+  "Open settings": "Einstellungen �ffnen",
+  "Search ingredients or products": "Zutaten oder Produkte suchen",
+  "Product search could not connect. Check your connection and try again.": "Keine Verbindung zur Produktsuche. Pr�fe deine Verbindung und versuche es erneut."
 }
