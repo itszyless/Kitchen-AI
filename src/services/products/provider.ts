@@ -15,6 +15,8 @@ export type ProductResult = {
   name: string;
   brand: string;
   barcode: string;
+  image?: string;
+  nutrition?: Record<string, number>;
   source: "openfoodfacts";
   allergenStatus: "unknown" | "declared";
   allergens: string[];
@@ -41,7 +43,7 @@ export const products: ProductProvider = {
     const timeout = setTimeout(() => controller.abort(), 12_000);
     try {
       const response = await fetch(
-        `https://world.openfoodfacts.org/api/v2/product/${code}?fields=code,product_name,brands,allergens_tags,allergens`,
+        `https://world.openfoodfacts.org/api/v2/product/${code}?fields=code,product_name,brands,allergens_tags,allergens,image_front_url,nutriments`,
         { signal: controller.signal },
       );
       if (response.status === 404) return null;
@@ -61,6 +63,24 @@ export const products: ProductProvider = {
               name: product.product_name.trim(),
               brand: typeof product.brands === "string" ? product.brands : "",
               source: "openfoodfacts",
+              image:
+                typeof product.image_front_url === "string" &&
+                product.image_front_url.startsWith("https://")
+                  ? product.image_front_url
+                  : undefined,
+              nutrition: Object.fromEntries(
+                [
+                  ["Energy (kcal)", product.nutriments?.["energy-kcal_100g"]],
+                  ["Protein (g)", product.nutriments?.proteins_100g],
+                  ["Carbohydrates (g)", product.nutriments?.carbohydrates_100g],
+                  ["Fat (g)", product.nutriments?.fat_100g],
+                ].filter(
+                  (entry): entry is [string, number] =>
+                    typeof entry[1] === "number" &&
+                    Number.isFinite(entry[1]) &&
+                    entry[1] >= 0,
+                ),
+              ),
               allergenStatus: product.allergens_tags?.length
                 ? "declared"
                 : "unknown",

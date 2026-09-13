@@ -1,3 +1,4 @@
+import { CookingStage } from "@/components/CookingStage";
 import { useLanguage } from "@/i18n";
 import { useEffect, useState, useRef } from "react";
 import { AppState } from "react-native";
@@ -5,22 +6,13 @@ import { router, useLocalSearchParams } from "expo-router";
 import { useKeepAwake } from "expo-keep-awake";
 import * as Haptics from "expo-haptics";
 import { Timer, Check } from "lucide-react-native";
-import {
-  Screen,
-  Back,
-  T,
-  Panel,
-  Button,
-  Row,
-  Empty,
-  Progress,
-} from "@/components/ui";
+import { Screen, Back, T, Panel, Button, Empty } from "@/components/ui";
 import { recipes } from "@/data/catalog";
 import { eligible } from "@/domain/matching";
 import { useCook } from "@/state/store";
 import { useTheme } from "@/theme/useTheme";
 export default function Cooking() {
-  useKeepAwake();
+  useKeepAwake(undefined, { suppressDeactivateWarnings: true });
   const { id, servings: servingParam } = useLocalSearchParams<{
     id: string;
     servings?: string;
@@ -36,7 +28,7 @@ export default function Cooking() {
   const [timerDone, setTimerDone] = useState(false);
   const completed = useRef(false);
   const c = useTheme();
-  const language = useLanguage(s => s.language);
+  const language = useLanguage((s) => s.language);
   const [original, setOriginal] = useState(false);
   useEffect(() => {
     if (!end) return;
@@ -100,6 +92,7 @@ export default function Cooking() {
               step === r.steps.length - 1 ? "I’m done — let’s eat" : "Next step"
             }
             onPress={() => {
+              void Haptics.selectionAsync().catch(() => {});
               if (step === r.steps.length - 1) {
                 if (!completed.current) {
                   complete();
@@ -130,22 +123,20 @@ export default function Cooking() {
       <T size={13} muted>
         {r.title} · {servings} servings
       </T>
-      <Row>
-        <Progress value={((step + 1) / r.steps.length) * 100} />
-        <T muted size={12}>
-          {step + 1}/{r.steps.length}
-        </T>
-      </Row>
-      <T size={13} bold muted>
-        STEP {step + 1} OF {r.steps.length}
-      </T>
-      <T size={34} bold original={original}>
-        {current.title}
-      </T>
-      <T size={21} original={original} style={{ lineHeight: 33 }}>
-        {current.body}
-      </T>
-      {language === "de" ? <Button secondary label={original ? "Show translation" : "Show original"} onPress={() => setOriginal(!original)} /> : null}
+      <CookingStage
+        step={step}
+        total={r.steps.length}
+        title={current.title}
+        body={current.body}
+        original={original}
+      />
+      {language === "de" ? (
+        <Button
+          secondary
+          label={original ? "Show translation" : "Show original"}
+          onPress={() => setOriginal(!original)}
+        />
+      ) : null}
       <Button
         secondary
         label={tip ? "Hide the little extra help" : "A little extra help"}
@@ -153,7 +144,9 @@ export default function Cooking() {
       />
       {tip ? (
         <Panel>
-          <T size={18} original={original}>{current.tip}</T>
+          <T size={18} original={original}>
+            {current.tip}
+          </T>
         </Panel>
       ) : null}
       {current.seconds && !end ? (

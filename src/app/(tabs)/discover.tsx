@@ -57,7 +57,8 @@ export default function Discover() {
       (r) =>
         filter === "All recipes" ||
         (filter === "Vegan" && r.category === "Vegan") ||
-        (filter === "Saved" && saved.includes(r.id)) || filter === "Community",
+        (filter === "Saved" && saved.includes(r.id)) ||
+        r.category === filter,
     )
     .filter((r) =>
       normalize(
@@ -100,7 +101,14 @@ export default function Discover() {
           "High protein",
           "Vegan",
           "Saved",
-          "Community",
+          "Pasta",
+          "Seafood",
+          "Chicken",
+          "Beef",
+          "Vegetarian",
+          "Breakfast",
+          "Dessert",
+          "Side",
         ].map((f) => (
           <Chip
             key={f}
@@ -179,7 +187,14 @@ export default function Discover() {
             "High protein",
             "Vegan",
             "Saved",
-            "Community",
+            "Pasta",
+            "Seafood",
+            "Chicken",
+            "Beef",
+            "Vegetarian",
+            "Breakfast",
+            "Dessert",
+            "Side",
           ].map((f) => (
             <Chip
               key={f}

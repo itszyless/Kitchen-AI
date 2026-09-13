@@ -1,3 +1,6 @@
+import { translateRecipe } from "@/services/ai/translation";
+import { useLanguage } from "@/i18n";
+import { substitutionLimit } from "@/services/entitlements";
 import { useState } from "react";
 import { z } from "zod";
 import { View } from "react-native";
@@ -27,6 +30,8 @@ export function AISubstitutions({
   ingredient: string;
   recipe: string;
 }) {
+  const language = useLanguage((s) => s.language);
+  const limit = substitutionLimit();
   const pantry = useCook((s) => s.pantry);
   const preferences = useCook((s) => s.preferences);
   const [busy, setBusy] = useState(false);
@@ -54,7 +59,15 @@ export function AISubstitutions({
         : pantry;
       const allowed = candidates.filter((p) => {
         const i = ingredientById[p.ingredientId];
-        if (!i) return p.quantity > 0 && !preferences.allergies.length && !(preferences.customAllergies ?? []).length && !preferences.dislikes.length && !(preferences.foodPreferences ?? []).length && preferences.diet === "Anything";
+        if (!i)
+          return (
+            p.quantity > 0 &&
+            !preferences.allergies.length &&
+            !(preferences.customAllergies ?? []).length &&
+            !preferences.dislikes.length &&
+            !(preferences.foodPreferences ?? []).length &&
+            preferences.diet === "Anything"
+          );
         if (
           p.quantity <= 0 ||
           !safeIngredient(i.id, preferences.allergies) ||
@@ -86,9 +99,13 @@ export function AISubstitutions({
       const data = schema.parse(
         await kitchenAI({
           action: "substitute",
-          limit: outside ? 5 : 3,
+          limit,
           ingredient,
-          recipe,
+          recipe: JSON.stringify({
+            recipe,
+            responseLanguage: language === "de" ? "German" : "English",
+            dietaryPreferences: preferences,
+          }),
           pantry: allowed.map((p) => ({
             id: p.id,
             name: ingredientById[p.ingredientId]?.name ?? p.name,
@@ -106,7 +123,20 @@ export function AISubstitutions({
         ),
       );
       setNames(Object.fromEntries(allowed.map((p) => [p.id, p.name])));
-      setSuggestions(valid);
+      const limited = valid.slice(0, limit);
+      if (language === "de" && limited.length) {
+        const translated = await translateRecipe(
+          "substitutions",
+          limited.flatMap((item) => [item.reason, item.instruction]),
+        );
+        setSuggestions(
+          limited.map((item, index) => ({
+            ...item,
+            reason: translated[index * 2],
+            instruction: translated[index * 2 + 1],
+          })),
+        );
+      } else setSuggestions(limited);
       if (!valid.length)
         setMessage(
           outside
@@ -139,7 +169,9 @@ export function AISubstitutions({
       {!pantry.length || (checked && !suggestions.length) ? (
         <View style={{ gap: 10 }}>
           <Button
-            label={busy ? "Finding alternatives…" : "Show top 5 substitutions"}
+            label={
+              busy ? "Finding alternatives…" : `Show top ${limit} substitutions`
+            }
             secondary
             disabled={busy}
             onPress={() => void ask(true)}

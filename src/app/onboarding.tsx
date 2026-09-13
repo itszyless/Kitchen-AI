@@ -239,7 +239,8 @@ export default function Onboarding() {
                 }}
               >
                 {options.map((o, n) =>
-                  step !== 2 || normalize(o + " " + t(o)).includes(normalize(search)) ? (
+                  step !== 2 ||
+                  normalize(o + " " + t(o)).includes(normalize(search)) ? (
                     <Pressable
                       key={o}
                       accessibilityRole="radio"
@@ -269,7 +270,9 @@ export default function Onboarding() {
                 )}
                 {step === 2
                   ? foodPreferences
-                      .filter((f) => normalize(f + " " + t(f)).includes(normalize(search)))
+                      .filter((f) =>
+                        normalize(f + " " + t(f)).includes(normalize(search)),
+                      )
                       .map((f) => (
                         <Chip
                           key={f}
@@ -305,7 +308,13 @@ export default function Onboarding() {
                   {allergens
                     .filter((a) =>
                       normalize(
-                        a + " " + t(a) + " " + (allergySearchTerms[a] ?? "") + " " + t(allergySearchTerms[a] ?? ""),
+                        a +
+                          " " +
+                          t(a) +
+                          " " +
+                          (allergySearchTerms[a] ?? "") +
+                          " " +
+                          t(allergySearchTerms[a] ?? ""),
                       ).includes(normalize(search)),
                     )
                     .map((a) => (
@@ -332,7 +341,9 @@ export default function Onboarding() {
                       ...(p.customAllergies ?? []),
                     ]),
                   ]
-                    .filter((a) => normalize(a + " " + t(a)).includes(normalize(search)))
+                    .filter((a) =>
+                      normalize(a + " " + t(a)).includes(normalize(search)),
+                    )
                     .map((a) => (
                       <Chip
                         key={a}
@@ -353,9 +364,15 @@ export default function Onboarding() {
                 </Row>
                 {search.trim().length >= 2 &&
                 !allergens.some((a) =>
-                  normalize(a + " " + t(a) + " " + (allergySearchTerms[a] ?? "") + " " + t(allergySearchTerms[a] ?? "")).includes(
-                    normalize(search),
-                  ),
+                  normalize(
+                    a +
+                      " " +
+                      t(a) +
+                      " " +
+                      (allergySearchTerms[a] ?? "") +
+                      " " +
+                      t(allergySearchTerms[a] ?? ""),
+                  ).includes(normalize(search)),
                 ) ? (
                   <Button
                     label={`Exclude “${search.trim()}”`}

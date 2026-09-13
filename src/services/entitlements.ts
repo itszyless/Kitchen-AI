@@ -20,3 +20,7 @@ export type Retailer = {
   url: string;
 };
 export const retailers: Retailer[] = [];
+
+// All accounts currently receive Plus at no charge. Replace this source with verified billing entitlements when billing is introduced.
+export const substitutionLimit = (plus = membership.mode === "free-preview") =>
+  plus ? 5 : 2;

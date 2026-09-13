@@ -40,7 +40,7 @@ export default function Detail() {
   const [selected, setSelected] = useState<string | null>(null);
   const [added, setAdded] = useState(false);
   const c = useTheme();
-  const language = useLanguage(s => s.language);
+  const language = useLanguage((s) => s.language);
   const [original, setOriginal] = useState(false);
   const insets = useSafeAreaInsets();
   if (!r)
@@ -121,8 +121,16 @@ export default function Detail() {
       <T bold size={32} original={original}>
         {r.title}
       </T>
-      <T muted original={original}>{r.subtitle}</T>
-      {language === "de" ? <Button secondary label={original ? "Show translation" : "Show original"} onPress={() => setOriginal(!original)} /> : null}
+      <T muted original={original}>
+        {r.subtitle}
+      </T>
+      {language === "de" ? (
+        <Button
+          secondary
+          label={original ? "Show translation" : "Show original"}
+          onPress={() => setOriginal(!original)}
+        />
+      ) : null}
       <Row
         style={{
           paddingVertical: 12,
@@ -240,10 +248,18 @@ export default function Detail() {
                 <AISubstitutions
                   ingredient={`${amount} ${i.unit} ${ingredientById[i.ingredientId].name}`}
                   recipe={
-                    r.title + "\n" + r.steps.map((step) => step.body).join("\n")
+                    r.title +
+                    "\nIngredients:\n" +
+                    r.ingredients
+                      .map(
+                        (item) =>
+                          `${item.quantity} ${item.unit} ${ingredientById[item.ingredientId].name}`,
+                      )
+                      .join("\n") +
+                    "\nMethod:\n" +
+                    r.steps.map((step) => step.body).join("\n")
                   }
                 />
-
               </Panel>
             ) : null}
           </View>

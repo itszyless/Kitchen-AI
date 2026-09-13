@@ -6,7 +6,7 @@
 
 A mobile cooking companion built with React Native and Expo.
 
-**AI-Assisted Development · Learning Project · Version 0.1.1**
+**AI-Assisted Development · Learning Project · Version 0.2.0**
 </div>
 
 ## About
@@ -17,7 +17,11 @@ This repository contains the first working development version. It is still bein
 
 ## Latest update
 
-Version 0.1.1 opens the camera directly from Scan, requests camera permission on entry, offers a Settings shortcut when permission is blocked, and adds bottom Barcode, Fridge, Item and Close controls. Ingredient and product search are accessible from the camera. Physical-device verification remains pending.
+Version 0.2.0 adds 60-day food history with quick repeat, quantity sheets, read-only product identity, optional source nutrition, manual photo capture, automatic barcode scanning, swipe-to-delete shopping items with Undo, animated cooking steps and daily cooking streaks. Recipes now use food categories instead of a catch-all Community filter. Allergy search and custom exclusions are available in Settings.
+
+Substitution requests include the full ingredient list and method. German explanations use the translation service. Free and Plus result limits are two and five; all current accounts retain free Plus access. This is an application-level limit, not a production billing entitlement.
+
+Physical-device camera and gesture verification is still needed. AI quality depends on source data and provider availability; suggestions are not guaranteed to be suitable or allergy-safe.
 
 ## Features
 

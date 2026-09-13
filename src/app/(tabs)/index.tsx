@@ -1,3 +1,5 @@
+import { cookingStreak } from "@/domain/activity";
+import { Flame } from "lucide-react-native";
 import { router } from "expo-router";
 import { View, ScrollView, Pressable } from "react-native";
 import {
@@ -20,6 +22,8 @@ import { eligible, match } from "@/domain/matching";
 import { useCook } from "@/state/store";
 import { useTheme } from "@/theme/useTheme";
 export default function Home() {
+  const cookedDays = useCook((s) => s.cookedDays);
+  const streak = cookingStreak(cookedDays);
   const c = useTheme();
   const p = useCook((s) => s.preferences);
   const pantry = useCook((s) => s.pantry);
@@ -37,11 +41,29 @@ export default function Home() {
     <Screen style={{ gap: 22 }}>
       <Row style={{ justifyContent: "space-between" }}>
         <View>
-          <T bold size={26} style={{ letterSpacing: -1.4 }}>
+          <T
+            bold
+            size={26}
+            style={{
+              letterSpacing: -1.5,
+              fontStyle: "italic",
+              fontWeight: "900",
+            }}
+          >
             COOK
           </T>
         </View>
         <Row style={{ gap: 8 }}>
+          <Row style={{ gap: 3 }}>
+            <Flame
+              size={22}
+              color={streak.active ? "#F15A38" : c.muted}
+              fill={streak.active ? "#F15A38" : "transparent"}
+            />
+            <T bold style={{ color: streak.active ? "#F15A38" : c.muted }}>
+              {streak.count.toLocaleString("en-US")}
+            </T>
+          </Row>
           <IconButton
             icon={ShoppingBasket}
             label="Shopping list"

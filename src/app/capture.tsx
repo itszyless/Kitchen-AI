@@ -36,8 +36,7 @@ export default function Capture() {
     permissionAsked.current = true;
     void requestPermission().catch(() => {});
   }, [permission, requestPermission]);
-  const close = () =>
-    router.canGoBack() ? router.back() : router.replace("/");
+
   const [active, setActive] = useState(AppState.currentState === "active");
   const [focused, setFocused] = useState(true);
   useFocusEffect(
@@ -57,12 +56,11 @@ export default function Capture() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [torch, setTorch] = useState(false);
-  const [automatic, setAutomatic] = useState(true);
-  const [epoch, setEpoch] = useState(0);
+
   const camera = useRef<CameraView>(null);
   const inFlight = useRef(false);
   const alive = useRef(true);
-  const attempt = useRef("");
+
   const save = useScan((s) => s.set);
   const insets = useSafeAreaInsets();
   useEffect(() => {
@@ -100,7 +98,8 @@ export default function Capture() {
     [save],
   );
   const shoot = useCallback(async () => {
-    if (inFlight.current || !camera.current) return;
+    if (inFlight.current || !camera.current || !ready || !active || !focused)
+      return;
     inFlight.current = true;
     setBusy(true);
     setError("");
@@ -117,27 +116,10 @@ export default function Capture() {
       inFlight.current = false;
       if (alive.current) setBusy(false);
     }
-  }, [process]);
-  useEffect(() => {
-    const key = mode + epoch;
-    if (
-      !active ||
-      !focused ||
-      !ready ||
-      mode === "Barcode" ||
-      !automatic ||
-      attempt.current === key
-    )
-      return;
-    const timer = setTimeout(() => {
-      attempt.current = key;
-      void shoot();
-    }, 1800);
-    return () => clearTimeout(timer);
-  }, [active, focused, ready, mode, automatic, epoch, shoot]);
+  }, [process, ready, active, focused]);
   const pick = async () => {
     if (inFlight.current) return;
-    setAutomatic(false);
+
     setError("");
     try {
       const result = await ImagePicker.launchImageLibraryAsync({
@@ -285,7 +267,20 @@ export default function Capture() {
           </Pressable>
         </View>
         <View pointerEvents="none" style={{ alignItems: "center", gap: 16 }}>
-          <ScanLine size={170} strokeWidth={0.6} color="white" />
+          {mode === "Barcode" ? (
+            <View
+              style={{
+                width: "90%",
+                maxWidth: 320,
+                height: 110,
+                borderWidth: 2,
+                borderColor: "white",
+                borderRadius: 16,
+              }}
+            />
+          ) : (
+            <ScanLine size={170} strokeWidth={0.6} color="white" />
+          )}
           <T
             bold
             size={18}
@@ -334,7 +329,7 @@ export default function Capture() {
                 disabled={busy}
                 onPress={() => {
                   setMode(m);
-                  setEpoch((n) => n + 1);
+
                   setError("");
                 }}
                 style={{
@@ -356,20 +351,6 @@ export default function Capture() {
                 </T>
               </Pressable>
             ))}
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel="Close camera"
-              onPress={close}
-              style={{ flex: 1, minHeight: 44, justifyContent: "center" }}
-            >
-              <T
-                size={13}
-                bold
-                style={{ textAlign: "center", color: "#171719" }}
-              >
-                Close
-              </T>
-            </Pressable>
           </View>
           <Pressable
             accessibilityRole="button"
@@ -415,21 +396,6 @@ export default function Capture() {
               <View
                 style={{ flex: 1, borderRadius: 32, backgroundColor: "white" }}
               />
-            </Pressable>
-            <Pressable
-              accessibilityRole="switch"
-              accessibilityState={{ checked: automatic }}
-              accessibilityLabel="Automatic scan"
-              disabled={busy}
-              onPress={() => {
-                setAutomatic(!automatic);
-                setEpoch((n) => n + 1);
-              }}
-              style={{ padding: 12 }}
-            >
-              <T size={12} bold style={{ color: "white" }}>
-                {automatic ? "Auto on" : "Auto off"}
-              </T>
             </Pressable>
           </View>
           <T size={11} style={{ color: "#FFFFFF", textAlign: "center" }}>

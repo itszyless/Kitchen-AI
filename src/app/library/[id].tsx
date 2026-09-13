@@ -1,3 +1,5 @@
+import { CookingStage } from "@/components/CookingStage";
+import { useKeepAwake } from "expo-keep-awake";
 import { useRecipeTranslation } from "@/components/RecipeTranslation";
 import { AISubstitutions } from "@/components/AISubstitutions";
 import { useState } from "react";
@@ -5,7 +7,15 @@ import { Linking, View, Pressable } from "react-native";
 import { Image } from "expo-image";
 import { useLocalSearchParams } from "expo-router";
 import { Bookmark } from "lucide-react-native";
-import { Screen, Back, T, Button, Row, Progress, Empty, IconButton } from "@/components/ui";
+import {
+  Screen,
+  Back,
+  T,
+  Button,
+  Row,
+  Empty,
+  IconButton,
+} from "@/components/ui";
 import {
   recipeLibrary,
   instructionSteps,
@@ -15,16 +25,26 @@ import { useCook } from "@/state/store";
 import { useTheme } from "@/theme/useTheme";
 
 export default function LibraryDetail() {
+  useKeepAwake(undefined, { suppressDeactivateWarnings: true });
   const { id } = useLocalSearchParams<{ id: string }>();
   const recipe = recipeLibrary.find((r) => r.id === id);
   const p = useCook((s) => s.preferences);
-  const saved = useCook(s => s.saved.includes(id));
-  const toggleSaved = useCook(s => s.toggleSaved);
-  const complete = useCook(s => s.complete);
+  const saved = useCook((s) => s.saved.includes(id));
+  const toggleSaved = useCook((s) => s.toggleSaved);
+  const complete = useCook((s) => s.complete);
   const [selected, setSelected] = useState<number | null>(null);
   const [step, setStep] = useState<number | null>(null);
   const c = useTheme();
-  const translation = useRecipeTranslation(recipe?.id ?? "", recipe ? [recipe.title, recipe.instructions, ...recipe.ingredients.map(i => i.name)] : []);
+  const translation = useRecipeTranslation(
+    recipe?.id ?? "",
+    recipe
+      ? [
+          recipe.title,
+          recipe.instructions,
+          ...recipe.ingredients.map((i) => i.name),
+        ]
+      : [],
+  );
   if (!recipe || !libraryEligible(recipe, p))
     return (
       <Screen>
@@ -49,12 +69,22 @@ export default function LibraryDetail() {
           }
           onPress={() => {
             if (step !== null && step === steps.length - 1) complete();
-            setStep(step === null ? 0 : step < steps.length - 1 ? step + 1 : null);
+            setStep(
+              step === null ? 0 : step < steps.length - 1 ? step + 1 : null,
+            );
           }}
         />
       }
     >
-      <Row style={{justifyContent:"space-between"}}><Back title={step === null ? "Recipe" : "Cooking"} /><IconButton icon={Bookmark} label={saved ? "Unsave recipe" : "Save recipe"} active={saved} onPress={() => toggleSaved(id)} /></Row>
+      <Row style={{ justifyContent: "space-between" }}>
+        <Back title={step === null ? "Recipe" : "Cooking"} />
+        <IconButton
+          icon={Bookmark}
+          label={saved ? "Unsave recipe" : "Save recipe"}
+          active={saved}
+          onPress={() => toggleSaved(id)}
+        />
+      </Row>
       {step === null ? (
         <>
           <Image
@@ -90,7 +120,9 @@ export default function LibraryDetail() {
                     paddingBottom: 12,
                   }}
                 >
-                  <T original style={{ flex: 1 }}>{translation.texts[n + 2]}</T>
+                  <T original style={{ flex: 1 }}>
+                    {translation.texts[n + 2]}
+                  </T>
                   <T muted style={{ maxWidth: "45%" }}>
                     {i.measure}
                   </T>
@@ -99,7 +131,15 @@ export default function LibraryDetail() {
               {selected === n ? (
                 <AISubstitutions
                   ingredient={i.measure + " " + i.name}
-                  recipe={recipe.title + "\n" + recipe.instructions}
+                  recipe={
+                    recipe.title +
+                    "\nIngredients:\n" +
+                    recipe.ingredients
+                      .map((item) => item.measure + " " + item.name)
+                      .join("\n") +
+                    "\nMethod:\n" +
+                    recipe.instructions
+                  }
                 />
               ) : null}
             </View>
@@ -126,17 +166,13 @@ export default function LibraryDetail() {
         </>
       ) : (
         <>
-          <Row>
-            <Progress value={((step + 1) / steps.length) * 100} />
-            <T muted>
-              {step + 1}/{steps.length}
-            </T>
-          </Row>
-          <T muted original>{translation.texts[0]}</T>
-          <T bold size={34}>
-            Step {step + 1}
-          </T>
-          <T size={25} original>{steps[step]}</T>
+          <CookingStage
+            step={step}
+            total={steps.length}
+            title={translation.texts[0]}
+            body={steps[step]}
+            original
+          />
           {step > 0 ? (
             <Button
               label="Previous step"

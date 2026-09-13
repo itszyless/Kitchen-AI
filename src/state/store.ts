@@ -1,3 +1,4 @@
+import { addHistory, dayKey, FoodHistory } from "@/domain/activity";
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -28,6 +29,12 @@ type CookState = {
   shopping: ShoppingItem[];
   theme: "system" | "light" | "dark";
   completed: number;
+  foodHistory: FoodHistory[];
+  cookedDays: string[];
+  shoppingHintSeen: boolean;
+  markShoppingHint: () => void;
+  removeShopping: (index: number) => void;
+  restoreShopping: (item: ShoppingItem) => void;
   setHydrated: () => void;
   setStorageError: () => void;
   updatePreferences: (p: Partial<Preferences>) => void;
@@ -53,6 +60,14 @@ export const useCook = create<CookState>()(
       shopping: [],
       theme: "system",
       completed: 0,
+      foodHistory: [],
+      cookedDays: [],
+      shoppingHintSeen: false,
+      markShoppingHint: () => set({ shoppingHintSeen: true }),
+      restoreShopping: (item) =>
+        set((s) => ({ shopping: [...s.shopping, item] })),
+      removeShopping: (index) =>
+        set((s) => ({ shopping: s.shopping.filter((_, n) => n !== index) })),
       setHydrated: () => set({ hydrated: true }),
       setStorageError: () => set({ storageError: true, hydrated: true }),
       updatePreferences: (p) =>
@@ -71,7 +86,7 @@ export const useCook = create<CookState>()(
             if (old) old.quantity += item.quantity;
             else pantry.push(item);
           }
-          return { pantry };
+          return { pantry, foodHistory: addHistory(s.foodHistory, items) };
         }),
       updatePantry: (id, p) =>
         set((s) => ({
@@ -96,7 +111,11 @@ export const useCook = create<CookState>()(
           ),
         })),
       setTheme: (theme) => set({ theme }),
-      complete: () => set((s) => ({ completed: s.completed + 1 })),
+      complete: () =>
+        set((s) => ({
+          completed: s.completed + 1,
+          cookedDays: [...new Set([...s.cookedDays, dayKey()])],
+        })),
     }),
     {
       name: "cook-local-v1",
@@ -120,6 +139,9 @@ export const useCook = create<CookState>()(
         shopping: s.shopping,
         theme: s.theme,
         completed: s.completed,
+        foodHistory: s.foodHistory,
+        cookedDays: s.cookedDays,
+        shoppingHintSeen: s.shoppingHintSeen,
       }),
       onRehydrateStorage: () => (state, error) => {
         if (error) useCook.getState().setStorageError();

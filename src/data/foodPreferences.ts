@@ -13,6 +13,7 @@ export const allergySearchTerms: Record<string, string> = {
   Sulphites: "sulfites sulphur sulfur dioxide",
 };
 export const otherAllergies = [
+  "Apple", "Apricot", "Beef", "Bell pepper", "Carrot", "Cherry", "Cocoa", "Coffee", "Coriander", "Cucumber", "Grape", "Honey", "Latex-associated foods", "Melon", "Mushroom", "Orange", "Papaya", "Pear", "Pork", "Pumpkin seed", "Quinoa", "Raspberry", "Red meat (alpha-gal)", "Sweet potato", "Yeast",
   "Avocado",
   "Banana",
   "Buckwheat",

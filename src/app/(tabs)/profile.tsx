@@ -1,3 +1,7 @@
+import { useState } from "react";
+import { useTranslate } from "@/i18n";
+import { otherAllergies, allergySearchTerms } from "@/data/foodPreferences";
+import { normalize } from "@/domain/matching";
 import { LanguagePicker } from "@/components/LanguagePicker";
 import { router } from "expo-router";
 import { View, Pressable } from "react-native";
@@ -7,7 +11,7 @@ import {
   Bookmark,
   ChevronRight,
 } from "lucide-react-native";
-import { Screen, T, Panel, Chip, Row } from "@/components/ui";
+import { Screen, T, SearchBar, Chip, Row } from "@/components/ui";
 import { useCook } from "@/state/store";
 import { useTheme } from "@/theme/useTheme";
 import { allergens } from "@/domain/types";
@@ -16,6 +20,8 @@ import { supabase } from "@/services/supabase/client";
 import { membership } from "@/services/entitlements";
 import { Button } from "@/components/ui";
 export default function Profile() {
+  const [allergyQuery, setAllergyQuery] = useState("");
+  const t = useTranslate();
   const { session } = useAuth();
   const p = useCook((s) => s.preferences);
   const update = useCook((s) => s.updatePreferences);
@@ -128,22 +134,73 @@ export default function Profile() {
         ))}
       </Row>
       <T bold>Excluded allergens</T>
+      <SearchBar
+        accessibilityLabel="Search allergies"
+        placeholder="Search allergies"
+        value={allergyQuery}
+        onChangeText={setAllergyQuery}
+      />
       <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
-        {allergens.map((a) => (
-          <Chip
-            key={a}
-            label={a}
-            selected={p.allergies.includes(a)}
-            onPress={() =>
-              update({
-                allergies: p.allergies.includes(a)
-                  ? p.allergies.filter((x) => x !== a)
-                  : [...p.allergies, a],
-              })
-            }
-          />
-        ))}
+        {allergens
+          .filter((a) =>
+            normalize(
+              a + " " + t(a) + " " + (allergySearchTerms[a] ?? ""),
+            ).includes(normalize(allergyQuery)),
+          )
+          .map((a) => (
+            <Chip
+              key={a}
+              label={a}
+              selected={p.allergies.includes(a)}
+              onPress={() =>
+                update({
+                  allergies: p.allergies.includes(a)
+                    ? p.allergies.filter((x) => x !== a)
+                    : [...p.allergies, a],
+                })
+              }
+            />
+          ))}
       </View>
+      <Row style={{ flexWrap: "wrap" }}>
+        {[
+          ...new Set([
+            ...(allergyQuery.trim() ? otherAllergies : []),
+            ...(p.customAllergies ?? []),
+          ]),
+        ]
+          .filter((a) =>
+            normalize(a + " " + t(a)).includes(normalize(allergyQuery)),
+          )
+          .map((a) => (
+            <Chip
+              key={a}
+              label={a}
+              selected={(p.customAllergies ?? []).includes(a)}
+              onPress={() =>
+                update({
+                  customAllergies: (p.customAllergies ?? []).includes(a)
+                    ? p.customAllergies?.filter((x) => x !== a)
+                    : [...(p.customAllergies ?? []), a],
+                })
+              }
+            />
+          ))}
+      </Row>
+      {allergyQuery.trim().length >= 2 ? (
+        <Button
+          secondary
+          label="Add custom allergy"
+          onPress={() => {
+            update({
+              customAllergies: [
+                ...new Set([...(p.customAllergies ?? []), allergyQuery.trim()]),
+              ],
+            });
+            setAllergyQuery("");
+          }}
+        />
+      ) : null}
       <T size={13} muted>
         Always verify labels and cross-contact risks. Cook is not a substitute
         for checking food safety yourself.
@@ -159,14 +216,7 @@ export default function Profile() {
           />
         ))}
       </Row>
-      <Panel>
-        <T bold>Private by default</T>
-        <T size={14}>
-          Your kitchen is saved on this device. When you scan a photo or ask for
-          a substitution, the information needed for that request is sent to our
-          AI provider.
-        </T>
-      </Panel>
+
       <T size={12} muted>
         Cook · Made for your everyday kitchen.
       </T>

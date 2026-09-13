@@ -87,7 +87,8 @@ export default function Pantry() {
         />
       ) : null}
       <T muted size={12}>
-        {result.length === 1 ? "1 ingredient" : `${result.length} ingredients`} · Soonest expiry first
+        {result.length === 1 ? "1 ingredient" : `${result.length} ingredients`}{" "}
+        · Soonest expiry first
       </T>
       <View>
         {result.map((item) => {
