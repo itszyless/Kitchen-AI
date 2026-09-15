@@ -36,7 +36,7 @@ Copy `.env.example` to `.env` and fill in the Supabase URL and publishable key f
 
 ## Previous update
 
-Version 0.3.0 adds 60-day food history with quick repeat, quantity sheets, read-only product identity, optional source nutrition, manual photo capture, automatic barcode scanning, swipe-to-delete shopping items with Undo, animated cooking steps and daily cooking streaks. Recipes now use food categories instead of a catch-all Community filter. Allergy search and custom exclusions are available in Settings.
+Version 0.2.0 added 60-day food history with quick repeat, quantity sheets, read-only product identity, optional source nutrition, manual photo capture, automatic barcode scanning, swipe-to-delete shopping items with Undo, animated cooking steps and daily cooking streaks. Recipes now use food categories instead of a catch-all Community filter. Allergy search and custom exclusions are available in Settings.
 
 Substitution requests include the full ingredient list and method. German explanations use the translation service. Free and Plus result limits are two and five; all current accounts retain free Plus access. This is an application-level limit, not a production billing entitlement.
 

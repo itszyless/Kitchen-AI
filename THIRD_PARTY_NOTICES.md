@@ -1,6 +1,6 @@
 # Third-party notices
 
-The Expo starter template is used under the following MIT license. This notice does not choose a public distribution license for original Cook code. Other dependencies retain their own licenses.
+The Expo starter template is used under the following MIT license. This notice does not choose a public distribution license for original Kitchen AI code. Other dependencies retain their own licenses.
 
 The MIT License (MIT)
 
@@ -28,4 +28,8 @@ SOFTWARE.
 
 The imported recipe collection and its remote photographs come from TheMealDB. Development access does not establish App Store distribution rights. See docs/RELEASE.md before publishing.
 
-Product results come from Open Food Facts and retain their source licensing and attribution requirements. Google sign-in branding belongs to Google. Third-party data and marks are not covered by any license for original Cook code.
+Product results come from Open Food Facts and retain their source licensing and attribution requirements. Google sign-in branding belongs to Google. Third-party data and marks are not covered by any license for original Kitchen AI code.
+
+## Supplied visual assets
+
+SF Pro Display font files, the Kitchen AI identity, the welcome mockup and platform icons were supplied by the project owner. SF Pro and third-party platform marks retain their respective rights. Verify permitted use for each target platform before distribution; inclusion here does not grant a separate font or trademark license.
