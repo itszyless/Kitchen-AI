@@ -1,3 +1,4 @@
+import { Brand } from "@/components/Brand";
 import { cookingStreak } from "@/domain/activity";
 import { Flame } from "lucide-react-native";
 import { router } from "expo-router";
@@ -41,17 +42,7 @@ export default function Home() {
     <Screen style={{ gap: 22 }}>
       <Row style={{ justifyContent: "space-between" }}>
         <View>
-          <T
-            bold
-            size={26}
-            style={{
-              letterSpacing: -1.5,
-              fontStyle: "italic",
-              fontWeight: "900",
-            }}
-          >
-            COOK
-          </T>
+          <Brand />
         </View>
         <Row style={{ gap: 8 }}>
           <Row style={{ gap: 3 }}>

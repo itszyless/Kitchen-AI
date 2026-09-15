@@ -1,4 +1,4 @@
-# Cook visual system
+# Kitchen AI visual system
 
 The owner selected a mostly monochrome direction, using Cal AI's restrained mobile layouts as a reference. White and charcoal carry the interface; food photography provides color. This replaces the earlier cream/green and exploratory tomato treatments.
 
@@ -6,7 +6,7 @@ The owner selected a mostly monochrome direction, using Cal AI's restrained mobi
 
 - Home: one photographic recommendation, open title and metadata, pantry progress, full-width recipe action; secondary inspiration below.
 - Discover: horizontal filters, native filter sheet, compact image/text results.
-- Onboarding: welcome plus six focused preference questions, explicit allergy acknowledgement, persistent CTA and progress. No paywall, gender collection, invented personalization claims, or forced account creation.
+- Onboarding: welcome, cooking goals and obstacles, age and optional gender, dietary preferences, allergies, time, skill, household, country, acquisition source and a summary. Email or Google account access follows; no paid gate.
 - Pantry: compact category rows with quantities; tap to reveal adjustment/removal. Removal retains undo.
 - Recipe/cooking/review: important actions remain in a safe-area footer while content scrolls.
 - Profile/shopping: open rows and dividers, limited containers.
@@ -15,11 +15,11 @@ The owner selected a mostly monochrome direction, using Cal AI's restrained mobi
 
 `src/theme/tokens.ts` owns the palette, typography, spacing, control dimensions, radii and motion constants. `src/components/ui.tsx` owns text, buttons, fields/search, chips, progress, section headings and screen/footers. Recipe cards have featured, rail and list variants. Expo Router retains native stack transitions; Reanimated provides button feedback, onboarding transitions and progress, respecting reduced motion.
 
-Plus Jakarta Sans uses the SIL Open Font License; the license is bundled in `assets/PLUS-JAKARTA-LICENSE.txt`. Only the three used font weights are imported. The owner's app icon is copied into app assets and preserved at `Desktop/Cooking-App/app-icon.png` as requested. Original Desktop files remain intact.
+The supplied SF Pro Display regular, medium, bold and black files are loaded with Expo Font. The supplied Kitchen AI wordmark, app icons, mockup, social icons and household dots live under assets. Light mode is the default; dark mode remains available.
 
 ## Tooling decisions and public references
 
-- [React Native Reusables](https://reactnativereusables.com/docs/installation/manual): evaluated its owned-component approach and NativeWind/Uniwind setup. Kept Cook's existing typed RN styles rather than adding another styling pipeline to this working project.
+- [React Native Reusables](https://reactnativereusables.com/docs/installation/manual): evaluated its owned-component approach and NativeWind/Uniwind setup. Kept Kitchen AI's existing typed RN styles rather than adding another styling pipeline to this working project.
 - [NativeWind](https://www.nativewind.dev/docs/getting-started/installation) and [Uniwind](https://docs.uniwind.dev/): viable styling alternatives, not required for this redesign; neither installed.
 - [Expo UI SDK 57](https://docs.expo.dev/versions/v57.0.0/sdk/ui/) and its [bottom-sheet replacement](https://docs.expo.dev/versions/v57.0.0/sdk/ui/drop-in-replacements/bottomsheet/): used for Discover's modal filters. Native iOS/Android presentation must still be checked on actual devices.
 - [Gorhom Bottom Sheet](https://gorhom.dev/react-native-bottom-sheet/): evaluated; avoided overlapping sheet implementations because Expo UI is already installed.

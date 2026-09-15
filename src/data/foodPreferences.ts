@@ -44,4 +44,5 @@ export const foodPreferences = [
   "Keto",
   "Halal",
   "Kosher",
+  "Flexitarian", "Plant-based", "Gluten-free", "Dairy-free", "Lactose-free", "Low sodium", "Low sugar", "Low FODMAP", "Whole foods", "Raw vegan", "Jain", "Buddhist vegetarian", "Ovo-vegetarian", "Lacto-vegetarian",
 ];

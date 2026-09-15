@@ -1,3 +1,4 @@
+import { syncAcquisition, useAcquisition } from "../acquisition";
 import {
   createContext,
   useContext,
@@ -44,6 +45,15 @@ export function AuthProvider({ children }: PropsWithChildren) {
       subscription.remove();
     };
   }, []);
+  useEffect(() => {
+    if (!session) return;
+    const sync = () => { void syncAcquisition(session.user.id).catch(() => {}); };
+    sync();
+    const unsubscribe = useAcquisition.subscribe(sync);
+    const foreground = AppState.addEventListener("change", state => { if (state === "active") sync(); });
+    const retry = setInterval(sync, 60_000);
+    return () => { unsubscribe(); foreground.remove(); clearInterval(retry); };
+  }, [session]);
   return (
     <AuthContext.Provider value={{ session, ready }}>
       {children}

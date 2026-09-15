@@ -1,25 +1,32 @@
 {
   "expo": {
-    "name": "Cook",
-    "slug": "cook",
-    "version": "0.2.0",
+    "name": "Kitchen AI",
+    "slug": "kitchen-ai",
+    "version": "0.3.0",
     "orientation": "portrait",
-    "icon": "./assets/images/app-icon.png",
-    "scheme": "cook",
+    "icon": "./assets/images/icons/full/lightmode.png",
+    "scheme": [
+      "kitchen-ai",
+      "cook"
+    ],
     "userInterfaceStyle": "automatic",
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "icon": {
+        "light": "./assets/images/icons/full/lightmode.png",
+        "dark": "./assets/images/icons/full/darkmode.png"
+      }
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/app-icon.png",
+        "foregroundImage": "./assets/images/icons/full/lightmode.png",
         "backgroundColor": "#171719"
       },
       "predictiveBackGestureEnabled": false
     },
     "web": {
       "output": "single",
-      "favicon": "./assets/images/app-icon.png"
+      "favicon": "./assets/images/icons/full/lightmode.png"
     },
     "plugins": [
       "expo-router",
@@ -27,14 +34,14 @@
         "expo-splash-screen",
         {
           "backgroundColor": "#FFFFFF",
-          "image": "./assets/images/app-icon.png",
-          "imageWidth": 76
+          "image": "./assets/images/icons/lightmode_text.png",
+          "imageWidth": 240
         }
       ],
       [
         "expo-camera",
         {
-          "cameraPermission": "Allow Cook to scan ingredients, your fridge and food barcodes.",
+          "cameraPermission": "Allow Kitchen AI to scan ingredients, your fridge and food barcodes.",
           "recordAudioAndroid": false
         }
       ],
@@ -43,11 +50,12 @@
       [
         "expo-image-picker",
         {
-          "photosPermission": "Allow Cook to identify food in photos you choose.",
-          "cameraPermission": "Allow Cook to scan ingredients, your fridge and food barcodes.",
+          "photosPermission": "Allow Kitchen AI to identify food in photos you choose.",
+          "cameraPermission": "Allow Kitchen AI to scan ingredients, your fridge and food barcodes.",
           "microphonePermission": false
         }
-      ]
+      ],
+      "@react-native-community/datetimepicker"
     ],
     "experiments": {
       "typedRoutes": true,

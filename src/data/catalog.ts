@@ -130,8 +130,8 @@ export const recipes: Recipe[] = [
     calories: 510,
     cuisine: "Italian",
     tags: ["Vegetarian", "Quick"],
-    author: "The Cook kitchen",
-    source: "Cook",
+    author: "The Kitchen AI kitchen",
+    source: "Kitchen AI",
     ingredients: [
       { ingredientId: "pasta", quantity: 180, unit: "g" },
       { ingredientId: "tomato", quantity: 250, unit: "g" },
@@ -175,8 +175,8 @@ export const recipes: Recipe[] = [
     calories: 430,
     cuisine: "Mediterranean",
     tags: ["Vegan", "High protein", "Quick"],
-    author: "The Cook kitchen",
-    source: "Cook",
+    author: "The Kitchen AI kitchen",
+    source: "Kitchen AI",
     ingredients: [
       { ingredientId: "chickpeas", quantity: 400, unit: "g" },
       { ingredientId: "cucumber", quantity: 1, unit: "piece" },
@@ -213,8 +213,8 @@ export const recipes: Recipe[] = [
     calories: 480,
     cuisine: "Everyday",
     tags: ["Vegetarian", "High protein"],
-    author: "The Cook kitchen",
-    source: "Cook",
+    author: "The Kitchen AI kitchen",
+    source: "Kitchen AI",
     ingredients: [
       { ingredientId: "rice", quantity: 160, unit: "g" },
       { ingredientId: "spinach", quantity: 120, unit: "g" },
@@ -251,8 +251,8 @@ export const recipes: Recipe[] = [
     calories: 460,
     cuisine: "Everyday",
     tags: ["Vegetarian"],
-    author: "The Cook kitchen",
-    source: "Cook",
+    author: "The Kitchen AI kitchen",
+    source: "Kitchen AI",
     ingredients: [
       { ingredientId: "potato", quantity: 400, unit: "g" },
       { ingredientId: "egg", quantity: 4, unit: "piece" },

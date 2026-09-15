@@ -49,12 +49,16 @@ export type Recipe = {
   cuisine: string;
   tags: string[];
   author: string;
-  source: "Cook" | "Community";
+  source: "Kitchen AI" | "Community";
   ingredients: RecipeIngredient[];
   steps: { title: string; body: string; tip: string; seconds?: number }[];
 };
 export type Preferences = {
+  cookingGoal?: string;
+  cookingChallenge?: string;
   age?: number;
+  birthDate?: string;
+  gender?: "Male" | "Female" | "Other" | "Prefer not to say";
   customAllergies?: string[];
   foodPreferences?: string[];
   country: string;

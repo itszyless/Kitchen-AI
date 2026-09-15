@@ -12,7 +12,7 @@ function Flag({code}:{code:"en"|"de"}) {
     {code === "de" ? <><Rect width="60" height="14" fill="#181818" /><Rect y="13" width="60" height="14" fill="#D52430" /><Rect y="26" width="60" height="14" fill="#F4C644" /></> : <><Rect width="60" height="40" fill="#173B79" /><Path d="M0 0L60 40M60 0L0 40" stroke="#fff" strokeWidth="8" /><Path d="M0 0L60 40M60 0L0 40" stroke="#CB283E" strokeWidth="3" /><Path d="M30 0V40M0 20H60" stroke="#fff" strokeWidth="13" /><Path d="M30 0V40M0 20H60" stroke="#CB283E" strokeWidth="7" /></>}
   </Svg>;
 }
-export function LanguagePicker() {
+export function LanguagePicker({ compact = false }: { compact?: boolean }) {
   const { language, setLanguage } = useLanguage();
   const [open, setOpen] = useState(false);
   const c = useTheme();
@@ -27,15 +27,19 @@ export function LanguagePicker() {
           alignSelf: "flex-end",
           flexDirection: "row",
           alignItems: "center",
-          gap: 8,
+          gap: compact ? 4 : 8,
           minHeight: 44,
-          paddingHorizontal: 14,
+          minWidth: 44,
+          flexShrink: 0,
+          justifyContent: "center",
+          paddingHorizontal: compact ? 10 : 14,
           borderRadius: 24,
           backgroundColor: c.surface,
         }}
       >
-        <Flag code={language} /><T size={14}>{language.toUpperCase()}</T>
-        <ChevronDown size={14} color={c.text} />
+        <Flag code={language} />
+        <T size={14} bold>{language.toUpperCase()}</T>
+        <ChevronDown size={compact ? 12 : 14} color={c.text} />
       </Pressable>
       <CookSheet
         visible={open}

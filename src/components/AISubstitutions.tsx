@@ -1,7 +1,7 @@
 import { translateRecipe } from "@/services/ai/translation";
 import { useLanguage } from "@/i18n";
 import { substitutionLimit } from "@/services/entitlements";
-import { useState } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { z } from "zod";
 import { View } from "react-native";
 import { Button, T } from "./ui";
@@ -34,6 +34,7 @@ export function AISubstitutions({
   const limit = substitutionLimit();
   const pantry = useCook((s) => s.pantry);
   const preferences = useCook((s) => s.preferences);
+  const requestVersion = useRef(0);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
   const [suggestions, setSuggestions] = useState<
@@ -42,131 +43,152 @@ export function AISubstitutions({
   const [outsidePantry, setOutsidePantry] = useState(false);
   const [checked, setChecked] = useState(false);
   const [names, setNames] = useState<Record<string, string>>({});
-  const ask = async (outside = false) => {
-    setOutsidePantry(outside);
-    setBusy(true);
-    setMessage("");
-    setSuggestions([]);
-    try {
-      const candidates = outside
-        ? Object.values(ingredientById).map((i) => ({
-            id: i.id,
-            ingredientId: i.id,
-            name: i.name,
-            quantity: 100000,
-            unit: "g" as const,
-          }))
-        : pantry;
-      const allowed = candidates.filter((p) => {
-        const i = ingredientById[p.ingredientId];
-        if (!i)
-          return (
-            p.quantity > 0 &&
-            !preferences.allergies.length &&
-            !(preferences.customAllergies ?? []).length &&
-            !preferences.dislikes.length &&
-            !(preferences.foodPreferences ?? []).length &&
-            preferences.diet === "Anything"
-          );
-        if (
-          p.quantity <= 0 ||
-          !safeIngredient(i.id, preferences.allergies) ||
-          preferences.dislikes.includes(i.id)
-        )
-          return false;
-        if (
-          (preferences.customAllergies ?? []).some((a) =>
-            normalize([i.name, ...i.aliases].join(" ")).includes(normalize(a)),
+  const ask = useCallback(
+    async (outside = false) => {
+      const version = ++requestVersion.current;
+      setOutsidePantry(outside);
+      setBusy(true);
+      setMessage("");
+      setSuggestions([]);
+      try {
+        const candidates = outside
+          ? Object.values(ingredientById).map((i) => ({
+              id: i.id,
+              ingredientId: i.id,
+              name: i.name,
+              quantity: 100000,
+              unit: "g" as const,
+            }))
+          : pantry;
+        const allowed = candidates.filter((p) => {
+          const i = ingredientById[p.ingredientId];
+          if (!i)
+            return (
+              p.quantity > 0 &&
+              !preferences.allergies.length &&
+              !(preferences.customAllergies ?? []).length &&
+              !preferences.dislikes.length &&
+              !(preferences.foodPreferences ?? []).length &&
+              preferences.diet === "Anything"
+            );
+          if (
+            p.quantity <= 0 ||
+            !safeIngredient(i.id, preferences.allergies) ||
+            preferences.dislikes.includes(i.id)
           )
-        )
-          return false;
-        if (
-          preferences.diet !== "Anything" &&
-          i.allergens.some((a) => ["Fish", "Shellfish", "Molluscs"].includes(a))
-        )
-          return false;
-        return (
-          preferences.diet !== "Vegan" ||
-          !i.allergens.some((a) => ["Milk", "Eggs"].includes(a))
-        );
-      });
-      if (!allowed.length)
-        throw new Error(
-          pantry.length
-            ? "No ingredients from your pantry can be used instead."
-            : "You haven’t added any ingredients to your pantry yet.",
-        );
-      const data = schema.parse(
-        await kitchenAI({
-          action: "substitute",
-          limit,
-          ingredient,
-          recipe: JSON.stringify({
-            recipe,
-            responseLanguage: language === "de" ? "German" : "English",
-            dietaryPreferences: preferences,
+            return false;
+          if (
+            (preferences.customAllergies ?? []).some((a) =>
+              normalize([i.name, ...i.aliases].join(" ")).includes(
+                normalize(a),
+              ),
+            )
+          )
+            return false;
+          if (
+            preferences.diet !== "Anything" &&
+            i.allergens.some((a) =>
+              ["Fish", "Shellfish", "Molluscs"].includes(a),
+            )
+          )
+            return false;
+          return (
+            preferences.diet !== "Vegan" ||
+            !i.allergens.some((a) => ["Milk", "Eggs"].includes(a))
+          );
+        });
+        if (!allowed.length)
+          throw new Error(
+            pantry.length
+              ? "No ingredients from your pantry can be used instead."
+              : "You haven’t added any ingredients to your pantry yet.",
+          );
+        const data = schema.parse(
+          await kitchenAI({
+            action: "substitute",
+            limit,
+            ingredient,
+            recipe: JSON.stringify({
+              recipe,
+              responseLanguage: language === "de" ? "German" : "English",
+              dietaryPreferences: { diet: preferences.diet, allergies: preferences.allergies, customAllergies: preferences.customAllergies, foodPreferences: preferences.foodPreferences, dislikes: preferences.dislikes },
+            }),
+            pantry: allowed.map((p) => ({
+              id: p.id,
+              name: ingredientById[p.ingredientId]?.name ?? p.name,
+              quantity: p.quantity,
+              unit: p.unit,
+            })),
           }),
-          pantry: allowed.map((p) => ({
-            id: p.id,
-            name: ingredientById[p.ingredientId]?.name ?? p.name,
-            quantity: p.quantity,
-            unit: p.unit,
-          })),
-        }),
-      );
-      const valid = data.suggestions.filter((s) =>
-        allowed.some(
-          (p) =>
-            p.id === s.pantryId &&
-            p.unit === s.unit &&
-            p.quantity >= s.quantity,
-        ),
-      );
-      setNames(Object.fromEntries(allowed.map((p) => [p.id, p.name])));
-      const limited = valid.slice(0, limit);
-      if (language === "de" && limited.length) {
-        const translated = await translateRecipe(
-          "substitutions",
-          limited.flatMap((item) => [item.reason, item.instruction]),
         );
-        setSuggestions(
-          limited.map((item, index) => ({
-            ...item,
-            reason: translated[index * 2],
-            instruction: translated[index * 2 + 1],
-          })),
+        const valid = data.suggestions.filter((s) =>
+          allowed.some(
+            (p) =>
+              p.id === s.pantryId &&
+              p.unit === s.unit &&
+              p.quantity >= s.quantity,
+          ),
         );
-      } else setSuggestions(limited);
-      if (!valid.length)
+        if (version !== requestVersion.current) return;
+        setNames(Object.fromEntries(allowed.map((p) => [p.id, p.name])));
+        const limited = valid.slice(0, limit);
+        setSuggestions(limited);
+        if (language === "de" && limited.length) {
+          try {
+            const translated = await translateRecipe(
+              "substitutions",
+              limited.flatMap((item) => [item.reason, item.instruction]),
+            );
+            if (version !== requestVersion.current) return;
+            setSuggestions(
+              limited.map((item, index) => ({
+                ...item,
+                reason: translated[index * 2],
+                instruction: translated[index * 2 + 1],
+              })),
+            );
+          } catch {
+            if (version !== requestVersion.current) return;
+            setMessage(
+              "Translation is unavailable. Showing the original suggestions.",
+            );
+          }
+        }
+        if (!valid.length)
+          setMessage(
+            outside
+              ? "No suitable substitutions were found for this recipe."
+              : "No ingredients from your pantry can be used instead.",
+          );
+      } catch (error) {
+        if (version !== requestVersion.current) return;
         setMessage(
-          outside
-            ? "No suitable substitutions were found for this recipe."
-            : "No ingredients from your pantry can be used instead.",
+          error instanceof Error
+            ? error.message
+            : "Could not check substitutions.",
         );
-    } catch (error) {
-      setMessage(
-        error instanceof Error
-          ? error.message
-          : "Could not check substitutions.",
-      );
-    } finally {
-      setChecked(true);
-      setBusy(false);
-    }
-  };
+      } finally {
+        if (version === requestVersion.current) {
+          setChecked(true);
+          setBusy(false);
+        }
+      }
+    },
+    [pantry, preferences, ingredient, recipe, language, limit],
+  );
+  useEffect(() => {
+    // Opening this ingredient starts an external request and its loading state.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    if (pantry.length) void ask();
+    return () => { requestVersion.current += 1; };
+  }, [ask, pantry.length]);
   return (
     <View style={{ gap: 10 }}>
-      {pantry.length > 0 ? (
-        <Button
-          label={busy ? "Checking this recipe…" : "Check my pantry with AI"}
-          secondary
-          disabled={busy}
-          onPress={() => void ask()}
-        />
-      ) : (
+      {busy ? <T accessibilityLiveRegion="polite">Checking this recipe…</T> : null}
+      {!pantry.length ? (
         <T>You haven’t added any ingredients to your pantry yet.</T>
-      )}
-      {!pantry.length || (checked && !suggestions.length) ? (
+      ) : null}
+      {!busy && (!pantry.length || (checked && !suggestions.length)) ? (
         <View style={{ gap: 10 }}>
           <Button
             label={
@@ -190,9 +212,9 @@ export function AISubstitutions({
       {outsidePantry && suggestions.length > 0 ? (
         <T muted>Alternatives to buy</T>
       ) : null}
-      <T muted size={12}>
+      {suggestions.length > 0 ? <T muted size={12}>
         AI suggestions need your review. Check product labels for allergens.
-      </T>
+      </T> : null}
       {suggestions.map((s) => (
         <View key={s.pantryId} style={{ gap: 6 }}>
           <T bold>
@@ -202,6 +224,7 @@ export function AISubstitutions({
           <T muted>{s.instruction}</T>
         </View>
       ))}
+      {!busy && message && pantry.length > 0 && !suggestions.length ? <Button label="Try again" secondary onPress={() => void ask(outsidePantry)} /> : null}
       {message ? (
         <T accessibilityRole="alert" size={13}>
           {message}

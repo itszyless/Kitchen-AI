@@ -1,24 +1,17 @@
 # Next work
 
-## Immediate owner steps
+## Current state
 
-1. Test Expo Go on the real iPhone. Report OS/Expo Go version if opening fails; do not change Windows security settings automatically.
-2. Sign in to Supabase, then approve a new Free-tier Cook development project and its region. Owner handles passwords, verification and keys.
-3. Supply GitHub authentication and choose a private repository before any push. The local commit uses an automation identity, not an invented user identity.
-4. Provide the existing logo when ready.
+Kitchen AI has a private GitHub repository, a configured Supabase project, email authentication, recipe discovery, product search and a server-side AI integration. Version 0.3.0 adds the new identity and onboarding changes. Google OAuth still needs owner configuration; Apple sign-in and paid subscriptions are deferred.
 
-## Next engineering milestone
+## Validation
 
-Connect Supabase auth and repositories; preserve guest progress through an idempotent server-side import. Apply and validate RLS against two actual users and an unauthenticated client. Add an outbox for offline retries. Build community draft editing, image upload, moderation submission and report UI.
+Test camera permission, manual photo capture, barcode scanning, cooking timers, gestures and the new onboarding on real iOS and Android devices. Run realistic substitution examples against the live service and check translated explanations. Browser previews cannot verify native behavior.
 
-## Product data and AI
+## Accounts and data
 
-Complete OFF usage registration with owner-supplied contact information and confirm license treatment. Implement country-ranked token/trigram search and canonical product mapping; the local catalog is only generic ingredients. Add a server-side barcode adapter with timeouts, caching, rate limiting and attribution. Expand private product nutrition/image validation.
+Onboarding answers and acquisition sources have private per-user storage. Pantry and shopping data still need a complete cross-device sync workflow. Usernames are display names stored in auth metadata; unique public handles, community publishing and moderation remain future work.
 
-No AI API is connected. Evaluate a free option on an explicit test set before activation. Use server-side provider keys, quotas, consent and image deletion jobs. Always review low-confidence results before pantry insertion. Do not infer allergy safety from AI labels.
+## Release gates
 
-## Quality and release gates
-
-Verify recipe instructions, allergen coverage, ingredient substitutions and nutrition before presenting data as trusted. Improve full natural-language recipe queries, unit conversion, preferences ranking, cooking timer persistence/background alerts, accessible large text and reduced motion. Real device camera and haptic tests remain open. Add privacy/terms, export/deletion, retention cleanup, abuse controls and load tests. Monetization remains disabled.
-
-The saved screenshots demonstrate local UI, not production readiness or an installed iPhone app.
+Review RELEASE.md. Purchase the required TheMealDB publishing license, verify font and image rights, complete privacy/terms and account deletion/export, and validate accessibility, data retention and abuse controls. Paid subscriptions remain disabled.

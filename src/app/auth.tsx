@@ -1,11 +1,12 @@
+import { useCook } from "@/state/store";
 import { LanguagePicker } from "@/components/LanguagePicker";
 import { useState } from "react";
-import { Redirect } from "expo-router";
+import { Redirect, useLocalSearchParams } from "expo-router";
 import { View, Pressable } from "react-native";
 import { Image } from "expo-image";
 import { Mail } from "lucide-react-native";
 import { GoogleButton } from "@/components/GoogleButton";
-import appIcon from "../../assets/images/app-icon.png";
+import appIcon from "../../assets/images/icons/full/lightmode.png";
 import * as WebBrowser from "expo-web-browser";
 import * as Linking from "expo-linking";
 import { Screen, T, Button, Field } from "@/components/ui";
@@ -14,13 +15,15 @@ import { useAuth } from "@/services/supabase/AuthProvider";
 WebBrowser.maybeCompleteAuthSession();
 export default function Auth() {
   const { session } = useAuth();
-  const [emailOpen, setEmailOpen] = useState(false);
+  const onboarded = useCook(s => s.onboarded);
+  const { mode } = useLocalSearchParams<{ mode?: string }>();
+  const [emailOpen, setEmailOpen] = useState(true);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [register, setRegister] = useState(true);
+  const [register, setRegister] = useState(mode !== "signin");
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
-  if (session) return <Redirect href="/" />;
+  if (session) return <Redirect href={session.user.user_metadata?.username ? (onboarded ? "/" : "/onboarding") : "/username"} />;
   const run = async (action: () => Promise<void>) => {
     setBusy(true);
     setMessage("");
@@ -182,12 +185,14 @@ export default function Auth() {
         label={
           register
             ? "Already have an account? Sign in"
-            : "New to Cook? Create account"
+            : "New to Kitchen AI? Create account"
         }
         secondary
         disabled={busy}
         onPress={() => setRegister(!register)}
       />
+      <T muted style={{ textAlign: "center" }}>OR</T>
+      <GoogleButton disabled={busy} onPress={() => void social("google")} />
       {message ? <T accessibilityRole="alert">{message}</T> : null}
     </Screen>
   );

@@ -23,7 +23,7 @@ export function CookSheet({
     <Modal
       visible={visible}
       transparent
-      animationType="slide"
+      animationType="fade"
       onRequestClose={onClose}
       statusBarTranslucent
       navigationBarTranslucent

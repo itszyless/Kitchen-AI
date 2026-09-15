@@ -15,3 +15,7 @@ This working version is for development. Complete this checklist before store su
 - [ ] Review credentials, signing, dependency licenses and production configuration.
 
 Apple sign-in and paid subscriptions are deferred. Passing development tests does not mean this checklist is complete.
+
+## Brand asset checks
+
+Verify SF Pro font licensing for the intended distribution platforms before release. The provided iOS light and dark app icons follow system appearance in native builds. Changing the home-screen icon from an in-app theme toggle and Android alternate launcher icons are not implemented. Expo Go retains its own initial launch UI. Usernames are display names stored in account metadata, not unique community handles.

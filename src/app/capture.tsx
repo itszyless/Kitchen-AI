@@ -1,3 +1,4 @@
+import { Brand } from "@/components/Brand";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { View, Pressable, Platform, AppState, Linking } from "react-native";
 import { StatusBar } from "expo-status-bar";
@@ -253,6 +254,7 @@ export default function Capture() {
           >
             <X size={24} color="white" />
           </Pressable>
+          <View style={{ justifyContent: "center", paddingHorizontal: 12, borderRadius: 24, backgroundColor: "#00000088" }}><Brand light width={150} /></View>
           <Pressable
             accessibilityRole="button"
             accessibilityLabel="Toggle flash"

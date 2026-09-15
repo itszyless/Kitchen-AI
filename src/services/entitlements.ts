@@ -8,7 +8,7 @@ export const entitlements: Entitlements = {
 };
 export const membership = {
   mode: "free-preview" as const,
-  label: "Cook Plus",
+  label: "Kitchen AI Plus",
   billingEnabled: false,
   entitlementId: "cook_pro",
 };

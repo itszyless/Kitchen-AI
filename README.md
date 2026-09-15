@@ -1,23 +1,42 @@
 <div align="center">
-<img src="assets/images/app-icon.png" width="96" alt="Cook app icon" />
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="assets/images/icons/darkmode_text.png" />
+  <img src="assets/images/icons/lightmode_text.png" width="440" alt="Kitchen AI" />
+</picture>
 
-# Cook
+# Kitchen AI
 ### What should I cook today?
 
 A mobile cooking companion built with React Native and Expo.
 
-**AI-Assisted Development · Learning Project · Version 0.2.0**
+**AI-Assisted Development · Learning Project · Version 0.3.0**
 </div>
 
 ## About
 
-Cook brings recipes, pantry ingredients, shopping lists and guided cooking into one app. The goal is to make everyday cooking easier while learning how a mobile application connects its interface, data and external services.
+Kitchen AI brings recipes, pantry ingredients, shopping lists and guided cooking into one app. The goal is to make everyday cooking easier while learning how a mobile application connects its interface, data and external services.
 
 This repository contains the first working development version. It is still being improved and is not an App Store release.
 
 ## Latest update
 
-Version 0.2.0 adds 60-day food history with quick repeat, quantity sheets, read-only product identity, optional source nutrition, manual photo capture, automatic barcode scanning, swipe-to-delete shopping items with Undo, animated cooking steps and daily cooking streaks. Recipes now use food categories instead of a catch-all Community filter. Allergy search and custom exclusions are available in Settings.
+Version 0.3.0 introduces the Kitchen AI identity, supplied logo assets, SF Pro typography, a light default theme, refreshed onboarding, saved cooking goals, birthday selection and username setup. Google OAuth still requires owner configuration. Usernames are account display names and are not unique public handles.
+
+## Set up on another computer
+
+Install Git and Node.js 22.13 or later, then sign in to GitHub with access to this private repository.
+
+```sh
+git clone https://github.com/itszyless/Kitchen-AI.git
+cd Kitchen-AI
+npm ci
+```
+
+Copy `.env.example` to `.env` and fill in the Supabase URL and publishable key from your project dashboard. Keep private server secrets in Supabase, not on the laptop. Run `npm start` and scan the QR code, or press `w` for the browser preview.
+
+## Previous update
+
+Version 0.3.0 adds 60-day food history with quick repeat, quantity sheets, read-only product identity, optional source nutrition, manual photo capture, automatic barcode scanning, swipe-to-delete shopping items with Undo, animated cooking steps and daily cooking streaks. Recipes now use food categories instead of a catch-all Community filter. Allergy search and custom exclusions are available in Settings.
 
 Substitution requests include the full ingredient list and method. German explanations use the translation service. Free and Plus result limits are two and five; all current accounts retain free Plus access. This is an application-level limit, not a production billing entitlement.
 
@@ -88,7 +107,7 @@ Scan the displayed QR code with your phone on the same network. For a browser pr
 npm run web
 ```
 
-On Windows, `scripts/Start-Cook.ps1` is available if Node needs the Windows trusted certificate roots. Run the script as a file, rather than pasting its contents into a terminal.
+On Windows, `scripts/Start-KitchenAI.ps1` is available if Node needs the Windows trusted certificate roots. Run the script as a file, rather than pasting its contents into a terminal.
 
 The SQL migrations and seed are in `supabase/`. The `kitchen-ai` function requires server-side `GROQ_API_KEY` and `GROQ_MODEL` secrets. Its handler validates the signed-in user and enforces usage limits. No hosted credentials are supplied in this repository.
 
@@ -105,7 +124,7 @@ The first command runs TypeScript, lint and unit tests. Database tests use embed
 
 - Pantry and other kitchen state are stored on the device. Complete account-based cloud synchronization is unfinished.
 - Google sign-in still needs provider configuration. Apple sign-in is deferred.
-- Cook Plus is currently free. Paid billing is not connected.
+- Kitchen AI Plus is currently free. Paid billing is not connected.
 - Translation coverage and physical-device testing are still being improved.
 - Imported recipes have limited verified dietary metadata, so preference filtering is conservative.
 - Store submission, account deletion and final privacy documentation remain release work.
@@ -114,6 +133,6 @@ The first command runs TypeScript, lint and unit tests. Database tests use embed
 
 TheMealDB recipes are retained for development. **A suitable license must be purchased and its terms checked before publishing the app.** This was deliberately deferred until launch, and is recorded in the [release checklist](docs/RELEASE.md).
 
-Open Food Facts data and third-party assets retain their respective terms. See [third-party notices](THIRD_PARTY_NOTICES.md). No license for original Cook code is granted by this README.
+Open Food Facts data and third-party assets retain their respective terms. See [third-party notices](THIRD_PARTY_NOTICES.md). No license for original Kitchen AI code is granted by this README.
 
 Local environment files, credentials, generated builds and QA account files are excluded from Git.

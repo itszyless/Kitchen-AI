@@ -108,7 +108,7 @@ export default function Detail() {
               label="Share recipe"
               onPress={() =>
                 void Share.share({
-                  message: r.title + " — " + r.subtitle + " From Cook.",
+                  message: r.title + " — " + r.subtitle + " From Kitchen AI.",
                 }).catch(() => {})
               }
             />
@@ -116,7 +116,7 @@ export default function Detail() {
         </Row>
       </View>
       <T muted size={12}>
-        {r.source === "Cook" ? "THE COOK KITCHEN" : "COMMUNITY"}
+        {r.source === "Kitchen AI" ? "THE Kitchen AI KITCHEN" : "COMMUNITY"}
       </T>
       <T bold size={32} original={original}>
         {r.title}

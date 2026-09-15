@@ -58,7 +58,7 @@ export const useCook = create<CookState>()(
       pantry: [],
       saved: [],
       shopping: [],
-      theme: "system",
+      theme: "light",
       completed: 0,
       foodHistory: [],
       cookedDays: [],
@@ -119,7 +119,16 @@ export const useCook = create<CookState>()(
     }),
     {
       name: "cook-local-v1",
-      version: 1,
+      // One-time reset of the development test data requested before onboarding QA.
+      version: 2,
+      migrate: () => ({
+        onboarded: false,
+        preferences: initialPreferences,
+        pantry: [], saved: [], shopping: [],
+        theme: "light" as const,
+        completed: 0, foodHistory: [], cookedDays: [],
+        shoppingHintSeen: false,
+      }),
       storage: createJSONStorage(() => ({
         getItem: AsyncStorage.getItem,
         setItem: async (k, v) => {

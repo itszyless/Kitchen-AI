@@ -1,6 +1,6 @@
-# Cook architecture
+# Kitchen AI architecture
 
-Cook is an Expo / React Native application, not a web app wrapped for iOS. The web target is a convenient Windows preview. Expo Router owns navigation; its headless tabs provide the custom scan action. Native folders are generated later using Expo Continuous Native Generation.
+Kitchen AI is an Expo / React Native application, not a web app wrapped for iOS. The web target is a convenient Windows preview. Expo Router owns navigation; its headless tabs provide the custom scan action. Native folders are generated later using Expo Continuous Native Generation.
 
 ## Boundaries
 

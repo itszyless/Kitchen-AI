@@ -177,7 +177,7 @@ export default function Cooking() {
         </T>
       ) : null}
       <T size={12} muted>
-        Keep Cook open for timer alerts.
+        Keep Kitchen AI open for timer alerts.
       </T>
     </Screen>
   );

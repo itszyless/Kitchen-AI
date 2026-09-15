@@ -52,7 +52,7 @@ export default function Profile() {
         </View>
         <View style={{ gap: 5, flex: 1 }}>
           <T bold size={23}>
-            Home cook
+            {session?.user.user_metadata?.username || "Home cook"}
           </T>
           <T muted size={13}>
             {completed} {completed === 1 ? "meal" : "meals"} made
@@ -202,7 +202,7 @@ export default function Profile() {
         />
       ) : null}
       <T size={13} muted>
-        Always verify labels and cross-contact risks. Cook is not a substitute
+        Always verify labels and cross-contact risks. Kitchen AI is not a substitute
         for checking food safety yourself.
       </T>
       <T bold>Product region · {p.country}</T>
@@ -218,7 +218,7 @@ export default function Profile() {
       </Row>
 
       <T size={12} muted>
-        Cook · Made for your everyday kitchen.
+        Kitchen AI · Made for your everyday kitchen.
       </T>
     </Screen>
   );

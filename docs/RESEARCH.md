@@ -24,7 +24,7 @@ Gemini offers a limited free tier, with data-use differences from paid service. 
 
 ## Original design direction
 
-Public Cal AI references show clear single actions and camera entry; YAZIO references show recipe imagery and browse categories; Duolingo describes consistent, recognizable tab design. Cook uses original herb-green/cream colors, a leaf mark, editorial food presentation, simple progress and explicit review. No paid Mobbin access or proprietary artwork was copied. [Cal AI](https://www.calai.app/), [YAZIO](https://www.yazio.com/en/), [Duolingo tab design](https://blog.duolingo.com/core-tabs-redesign/).
+Public Cal AI references show clear single actions and camera entry; YAZIO references show recipe imagery and browse categories; Duolingo describes consistent, recognizable tab design. Kitchen AI uses a monochrome palette and the owner-supplied chef mark, editorial food presentation, simple progress and explicit review. No paid Mobbin access or proprietary artwork was copied. [Cal AI](https://www.calai.app/), [YAZIO](https://www.yazio.com/en/), [Duolingo tab design](https://blog.duolingo.com/core-tabs-redesign/).
 
 ## Dependency exceptions
 

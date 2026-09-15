@@ -1,5 +1,5 @@
 export const brand = {
-  name: "COOK",
+  name: "Kitchen AI",
   tagline: "Your ingredients. Something brilliant.",
 };
 export const tokens = {

@@ -1,5 +1,6 @@
-import { PropsWithChildren, ReactNode, Children } from "react";
+import { PropsWithChildren, ReactNode, Children, Ref } from "react";
 import {
+  StyleSheet,
   ActivityIndicator,
   Pressable,
   ScrollView,
@@ -32,8 +33,7 @@ import * as Haptics from "expo-haptics";
 import { useTheme } from "@/theme/useTheme";
 import { useTranslate } from "@/i18n";
 import { tokens } from "@/theme/tokens";
-import { Image } from "expo-image";
-import appIcon from "../../assets/images/app-icon.png";
+import { Brand } from "./Brand";
 export function T({
   children,
   size = 16,
@@ -45,6 +45,8 @@ export function T({
 }: TextProps & { size?: number; muted?: boolean; bold?: boolean; original?: boolean }) {
   const c = useTheme();
   const t = useTranslate();
+  const weight = String(StyleSheet.flatten(style)?.fontWeight ?? (bold ? "700" : "400"));
+  const fontFamily = Number(weight) >= 800 ? "SFBlack" : (weight === "bold" || Number(weight) >= 600) ? "SFBold" : Number(weight) >= 500 ? "SFMedium" : "SFRegular";
   const parts = Children.toArray(children);
   const text = original ? children : parts.every(
     (part) => typeof part === "string" || typeof part === "number",
@@ -63,6 +65,7 @@ export function T({
           letterSpacing: size >= 24 ? -0.9 : 0,
         },
         style,
+        { fontFamily, fontWeight: "normal" },
       ]}
     >
       {text}
@@ -73,12 +76,14 @@ export function Screen({
   children,
   style,
   footer,
-}: PropsWithChildren<{ style?: StyleProp<ViewStyle>; footer?: ReactNode }>) {
+  scrollRef,
+}: PropsWithChildren<{ style?: StyleProp<ViewStyle>; footer?: ReactNode; scrollRef?: Ref<ScrollView> }>) {
   const c = useTheme();
   const insets = useSafeAreaInsets();
   return (
     <View style={{ flex: 1, backgroundColor: c.bg }}>
       <ScrollView
+        ref={scrollRef}
         style={{ flex: 1 }}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={[
@@ -286,6 +291,7 @@ export function Field(props: TextInputProps) {
           color: c.text,
           backgroundColor: c.surface,
           fontSize: 15,
+          fontFamily: "SFRegular",
         },
         props.style,
       ]}
@@ -368,13 +374,7 @@ export function Loading() {
         gap: 16,
       }}
     >
-      <Image
-        source={appIcon}
-        style={{ width: 96, height: 96, borderRadius: 24 }}
-      />
-      <T size={36} bold>
-        COOK
-      </T>
+      <Brand width={220} />
       <ActivityIndicator color={c.primary} />
     </View>
   );
