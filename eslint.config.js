@@ -1,3 +1,4 @@
+// Kitchen AI: TypeScript and React Hooks checks for application source.
 const js = require("@eslint/js");
 const tseslint = require("typescript-eslint");
 const hooks = require("eslint-plugin-react-hooks");
