@@ -1,3 +1,7 @@
+import {
+  recipeCategories,
+  matchesCategories,
+} from "@/domain/recipe-categories";
 import { router } from "expo-router";
 import { Image } from "expo-image";
 import { recipeLibrary, libraryEligible } from "@/data/recipeLibrary";
@@ -23,19 +27,33 @@ export default function Discover() {
   const [sheetOpen, setSheetOpen] = useState(false);
   const [visibleCount, setVisibleCount] = useState(20);
   const [query, setQuery] = useState("");
-  const [filter, setFilter] = useState("All recipes");
+  const [filters, setFilters] = useState<string[]>([]);
+  const selectFilter = (filter: string) => {
+    setVisibleCount(20);
+    setFilters((current) =>
+      filter === "All recipes"
+        ? []
+        : current.includes(filter)
+          ? current.filter((f) => f !== filter)
+          : [...current, filter],
+    );
+  };
   const p = useCook((s) => s.preferences);
   const pantry = useCook((s) => s.pantry);
   const saved = useCook((s) => s.saved);
   const result = recipes
     .filter((r) => eligible(r, p))
-    .filter(
-      (r) =>
-        filter === "All recipes" ||
-        (filter === "Under 20 min" && r.minutes <= 20) ||
-        (filter === "Saved" && saved.includes(r.id)) ||
-        (filter === "Community" && r.source === "Community") ||
-        r.tags.includes(filter),
+    .filter((r) =>
+      matchesCategories(
+        recipeCategories({
+          ...r,
+          ingredients: r.ingredients.map((i) => ({
+            name: ingredientById[i.ingredientId].name,
+          })),
+        }),
+        filters,
+        saved.includes(r.id),
+      ),
     )
     .filter((r) =>
       normalize(query)
@@ -53,12 +71,8 @@ export default function Discover() {
     );
   const library = recipeLibrary
     .filter((r) => libraryEligible(r, p))
-    .filter(
-      (r) =>
-        filter === "All recipes" ||
-        (filter === "Vegan" && r.category === "Vegan") ||
-        (filter === "Saved" && saved.includes(r.id)) ||
-        r.category === filter,
+    .filter((r) =>
+      matchesCategories(r.categories, filters, saved.includes(r.id)),
     )
     .filter((r) =>
       normalize(
@@ -109,15 +123,29 @@ export default function Discover() {
           "Breakfast",
           "Dessert",
           "Side",
+          "Salad",
+          "Soup",
         ].map((f) => (
           <Chip
             key={f}
             label={f}
-            selected={f === filter}
-            onPress={() => setFilter(f)}
+            selected={
+              f === "All recipes" ? filters.length === 0 : filters.includes(f)
+            }
+            onPress={() => selectFilter(f)}
           />
         ))}
       </ScrollView>
+      {filters.length > 1 ? (
+        <T muted size={13}>
+          Matching all selected filters
+        </T>
+      ) : null}
+      {filters.includes("Under 20 min") ? (
+        <T muted size={13}>
+          Only recipes with a confirmed total time are shown.
+        </T>
+      ) : null}
       <T muted size={13}>
         {result.length + library.length} recipes · tailored to your food
         preferences
@@ -152,7 +180,13 @@ export default function Discover() {
                 {r.title}
               </T>
               <T muted size={12}>
-                {[r.cuisine, r.category].filter(Boolean).join(" · ")}
+                {[
+                  r.cuisine,
+                  ...r.categories,
+                  r.minutes ? r.minutes + " min" : "",
+                ]
+                  .filter(Boolean)
+                  .join(" · ")}
               </T>
               <T muted size={11}>
                 TheMealDB
@@ -195,12 +229,16 @@ export default function Discover() {
             "Breakfast",
             "Dessert",
             "Side",
+            "Salad",
+            "Soup",
           ].map((f) => (
             <Chip
               key={f}
               label={f}
-              selected={f === filter}
-              onPress={() => setFilter(f)}
+              selected={
+                f === "All recipes" ? filters.length === 0 : filters.includes(f)
+              }
+              onPress={() => selectFilter(f)}
             />
           ))}
         </Row>

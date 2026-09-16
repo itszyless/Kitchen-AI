@@ -1,3 +1,4 @@
+import { useCook } from "@/state/store";
 import { syncAcquisition, useAcquisition } from "../acquisition";
 import {
   createContext,
@@ -47,12 +48,21 @@ export function AuthProvider({ children }: PropsWithChildren) {
   }, []);
   useEffect(() => {
     if (!session) return;
-    const sync = () => { void syncAcquisition(session.user.id).catch(() => {}); };
+    useCook.getState().finishOnboarding();
+    const sync = () => {
+      void syncAcquisition(session.user.id).catch(() => {});
+    };
     sync();
     const unsubscribe = useAcquisition.subscribe(sync);
-    const foreground = AppState.addEventListener("change", state => { if (state === "active") sync(); });
+    const foreground = AppState.addEventListener("change", (state) => {
+      if (state === "active") sync();
+    });
     const retry = setInterval(sync, 60_000);
-    return () => { unsubscribe(); foreground.remove(); clearInterval(retry); };
+    return () => {
+      unsubscribe();
+      foreground.remove();
+      clearInterval(retry);
+    };
   }, [session]);
   return (
     <AuthContext.Provider value={{ session, ready }}>

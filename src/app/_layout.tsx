@@ -1,3 +1,4 @@
+import { needsSocialUsername } from "@/domain/account";
 import asset0 from "../../assets/fonts/SF-Pro-Display-Regular.otf";
 import asset1 from "../../assets/fonts/SF-Pro-Display-Medium.otf";
 import asset2 from "../../assets/fonts/SF-Pro-Display-Bold.otf";
@@ -49,32 +50,38 @@ function Routes() {
   const onboarded = useCook((s) => s.onboarded);
   const hydrated = useCook((s) => s.hydrated);
   return (
-    <LaunchScreen ready={ready && hydrated && (fontsLoaded || Boolean(fontError))}>
-    <Stack
-      initialRouteName={onboarded ? "auth" : "onboarding"}
-      screenOptions={{
-        headerShown: false,
-        animation: "slide_from_right",
-        gestureEnabled: true,
-        contentStyle: { backgroundColor: c.bg },
-      }}
+    <LaunchScreen
+      ready={ready && hydrated && (fontsLoaded || Boolean(fontError))}
     >
-      <Stack.Screen name="onboarding" />
-      <Stack.Screen name="auth" />
-      <Stack.Screen name="username" />
-      <Stack.Protected guard={Boolean(session) && onboarded}>
-        <Stack.Screen name="(tabs)" />
-        <Stack.Screen name="add" />
-        <Stack.Screen name="barcode" />
-        <Stack.Screen name="capture" />
-        <Stack.Screen name="cook/[id]" />
-        <Stack.Screen name="library/[id]" />
-        <Stack.Screen name="products" />
-        <Stack.Screen name="recipe/[id]" />
-        <Stack.Screen name="review" />
-        <Stack.Screen name="shopping" />
-      </Stack.Protected>
-    </Stack>
+      <Stack
+        initialRouteName={onboarded ? "auth" : "onboarding"}
+        screenOptions={{
+          headerShown: false,
+          animation: "slide_from_right",
+          gestureEnabled: true,
+          contentStyle: { backgroundColor: c.bg },
+        }}
+      >
+        <Stack.Screen name="onboarding" />
+        <Stack.Screen name="auth" />
+        <Stack.Screen name="username" />
+        <Stack.Protected
+          guard={
+            Boolean(session && !needsSocialUsername(session.user)) && onboarded
+          }
+        >
+          <Stack.Screen name="(tabs)" />
+          <Stack.Screen name="add" />
+          <Stack.Screen name="barcode" />
+          <Stack.Screen name="capture" />
+          <Stack.Screen name="cook/[id]" />
+          <Stack.Screen name="library/[id]" />
+          <Stack.Screen name="products" />
+          <Stack.Screen name="recipe/[id]" />
+          <Stack.Screen name="review" />
+          <Stack.Screen name="shopping" />
+        </Stack.Protected>
+      </Stack>
     </LaunchScreen>
   );
 }

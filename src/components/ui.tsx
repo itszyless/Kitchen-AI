@@ -42,17 +42,33 @@ export function T({
   original = false,
   style,
   ...props
-}: TextProps & { size?: number; muted?: boolean; bold?: boolean; original?: boolean }) {
+}: TextProps & {
+  size?: number;
+  muted?: boolean;
+  bold?: boolean;
+  original?: boolean;
+}) {
   const c = useTheme();
   const t = useTranslate();
-  const weight = String(StyleSheet.flatten(style)?.fontWeight ?? (bold ? "700" : "400"));
-  const fontFamily = Number(weight) >= 800 ? "SFBlack" : (weight === "bold" || Number(weight) >= 600) ? "SFBold" : Number(weight) >= 500 ? "SFMedium" : "SFRegular";
+  const weight = String(
+    StyleSheet.flatten(style)?.fontWeight ?? (bold ? "700" : "400"),
+  );
+  const fontFamily =
+    Number(weight) >= 800
+      ? "SFBlack"
+      : weight === "bold" || Number(weight) >= 600
+        ? "SFBold"
+        : Number(weight) >= 500
+          ? "SFMedium"
+          : "SFRegular";
   const parts = Children.toArray(children);
-  const text = original ? children : parts.every(
-    (part) => typeof part === "string" || typeof part === "number",
-  )
-    ? t(parts.join(""))
-    : parts.map((part) => (typeof part === "string" ? t(part) : part));
+  const text = original
+    ? children
+    : parts.every(
+          (part) => typeof part === "string" || typeof part === "number",
+        )
+      ? t(parts.join(""))
+      : parts.map((part) => (typeof part === "string" ? t(part) : part));
   return (
     <Text
       {...props}
@@ -77,7 +93,11 @@ export function Screen({
   style,
   footer,
   scrollRef,
-}: PropsWithChildren<{ style?: StyleProp<ViewStyle>; footer?: ReactNode; scrollRef?: Ref<ScrollView> }>) {
+}: PropsWithChildren<{
+  style?: StyleProp<ViewStyle>;
+  footer?: ReactNode;
+  scrollRef?: Ref<ScrollView>;
+}>) {
   const c = useTheme();
   const insets = useSafeAreaInsets();
   return (
@@ -157,6 +177,7 @@ export function Button({
       <Pressable
         accessibilityRole="button"
         disabled={disabled}
+        accessibilityState={{ disabled }}
         onPressIn={() => {
           if (!reduce) scale.set(withSpring(0.975, tokens.motion.spring));
         }}
@@ -168,14 +189,20 @@ export function Button({
           onPress();
         }}
         style={{
-          backgroundColor: secondary ? c.surface : c.primary,
+          backgroundColor: disabled
+            ? c.dark
+              ? "#55565C"
+              : "#BCBCC0"
+            : secondary
+              ? c.surface
+              : c.primary,
           borderRadius: 999,
           minHeight: 56,
           paddingHorizontal: 18,
           paddingVertical: 15,
           alignItems: "center",
           justifyContent: "center",
-          opacity: disabled ? 0.4 : 1,
+          opacity: 1,
         }}
       >
         <Row>
@@ -185,7 +212,7 @@ export function Button({
           <T
             bold
             style={{
-              color: secondary ? c.text : c.onPrimary,
+              color: disabled ? "#FFFFFF" : secondary ? c.text : c.onPrimary,
               textAlign: "center",
             }}
           >

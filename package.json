@@ -66,7 +66,7 @@
     "format": "prettier --write src tests docs *.json *.md",
     "check": "npm run typecheck && npm run lint && npm test",
     "export": "expo export --platform web",
-    "test:db": "node supabase/tests/policies.mjs supabase/migrations/202609080001_foundation.sql supabase/migrations/202609100001_ai_quota.sql"
+    "test:db": "node supabase/tests/policies.mjs supabase/migrations/202609080001_foundation.sql supabase/migrations/202609100001_ai_quota.sql && node supabase/tests/usernames.mjs"
   },
   "private": true,
   "engines": {

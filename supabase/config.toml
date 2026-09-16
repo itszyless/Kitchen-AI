@@ -1,3 +1,7 @@
 [functions.kitchen-ai]
 # The handler verifies each bearer token with auth.getUser().
 verify_jwt = false
+
+[functions.username-login]
+# Password verification is delegated to Supabase Auth; server-side attempts are limited.
+verify_jwt = false

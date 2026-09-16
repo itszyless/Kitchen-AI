@@ -15,27 +15,59 @@ import { acquisitionSources, useAcquisition } from "@/services/acquisition";
 import { useTranslate } from "@/i18n";
 import { LanguagePicker } from "@/components/LanguagePicker";
 import { useRef, useState } from "react";
-import { View, Pressable, ScrollView, Platform, useWindowDimensions } from "react-native";
+import {
+  View,
+  Pressable,
+  ScrollView,
+  Platform,
+  useWindowDimensions,
+} from "react-native";
 import { Image } from "expo-image";
 import { router } from "expo-router";
-import { ArrowLeft, Check, Store, Play, Music2, Video, Tv, Camera, Search, MessageCircle, Users, MoreHorizontal, AtSign } from "lucide-react-native";
-import Animated, { FadeInRight, FadeInLeft, useReducedMotion } from "react-native-reanimated";
-import * as Haptics from "expo-haptics";
 import {
-  Screen,
-  T,
-  Button,
-  Row,
-  IconButton,
-  Progress,
-} from "@/components/ui";
+  ArrowLeft,
+  Check,
+  Clock,
+  Utensils,
+  ChefHat,
+  Store,
+  Play,
+  Music2,
+  Video,
+  Tv,
+  Camera,
+  Search,
+  MessageCircle,
+  Users,
+  MoreHorizontal,
+  AtSign,
+} from "lucide-react-native";
+import Animated, {
+  FadeInRight,
+  FadeInLeft,
+  useReducedMotion,
+} from "react-native-reanimated";
+import * as Haptics from "expo-haptics";
+import { Screen, T, Button, Row, IconButton, Progress } from "@/components/ui";
 import { useCook } from "@/state/store";
 import { useTheme } from "@/theme/useTheme";
 import { normalize } from "@/domain/matching";
 
 export default function Onboarding() {
   const acquisition = useAcquisition();
-  const sourceIcons = [Store, Play, Music2, Video, Tv, AtSign, Camera, Search, MessageCircle, Users, MoreHorizontal];
+  const sourceIcons = [
+    Store,
+    Play,
+    Music2,
+    Video,
+    Tv,
+    AtSign,
+    Camera,
+    Search,
+    MessageCircle,
+    Users,
+    MoreHorizontal,
+  ];
   const [position, setPosition] = useState(0);
   const order = [0, 10, 11, 7, 9, 2, 1, 3, 4, 5, 6, 8, 12];
   const step = order[position];
@@ -43,10 +75,16 @@ export default function Onboarding() {
   const scroll = useRef<ScrollView>(null);
   const [search, setSearch] = useState("");
 
-  const [confirmed, setConfirmed] = useState(false);
+  const answered = useCook((s) => s.onboardingAnswered);
+  const mark = useCook((s) => s.answerOnboarding);
+  const confirmed = answered.includes(1);
   const p = useCook((s) => s.preferences);
   const age = ageFromBirthDate(p.birthDate ?? "");
-  const update = useCook((s) => s.updatePreferences);
+  const savePreferences = useCook((s) => s.updatePreferences);
+  const update = (values: Parameters<typeof savePreferences>[0]) => {
+    savePreferences(values);
+    mark(step);
+  };
   const finish = useCook((s) => s.finishOnboarding);
   const c = useTheme();
   const t = useTranslate();
@@ -60,10 +98,10 @@ export default function Onboarding() {
     scroll.current?.scrollTo({ y: 0, animated: false });
     setPosition((s) => s + 1);
   };
-  const done = (scan: boolean) => {
+  const done = () => {
     acquisition.submit(p);
     finish();
-    router.replace(scan ? "/scan" : "/");
+    router.push({ pathname: "/auth", params: { mode: "register" } });
   };
   const titles = [
     "Dinner starts here.",
@@ -106,13 +144,14 @@ export default function Onboarding() {
             ? ["1-2 people", "3-4 people", "5+ people"]
             : [];
   const chosen = (n: number) =>
-    step === 2
+    answered.includes(step) &&
+    (step === 2
       ? p.diet === options[n]
       : step === 3
         ? p.minutes === [15, 30, 60][n]
         : step === 4
           ? p.skill === options[n]
-          : p.household === [2, 4, 6][n];
+          : p.household === [2, 4, 6][n]);
   const choose = (n: number) => {
     void Haptics.selectionAsync().catch(() => {});
     if (step === 2)
@@ -131,36 +170,32 @@ export default function Onboarding() {
       footer={
         step === 0 ? (
           <>
-            <Button label="Get started" onPress={next} /><Button label="Sign in" secondary onPress={() => router.push({ pathname: "/auth", params: { mode: "signin" } })} />
+            <Button label="Get started" onPress={next} />
+            <Pressable
+              accessibilityRole="button"
+              onPress={() =>
+                router.push({ pathname: "/auth", params: { mode: "signin" } })
+              }
+              style={{ minHeight: 44, justifyContent: "center" }}
+            >
+              <T size={14} style={{ textAlign: "center" }}>
+                Already have an account?{" "}
+                <T size={14} bold>
+                  Sign in
+                </T>
+              </T>
+            </Pressable>
           </>
         ) : step === 12 ? (
-          <>
-            <Button
-              label="Explore recipes"
-              disabled={
-                !acquisition.source
-              }
-              onPress={() => {
-                update({ age: age ?? 0 });
-                done(false);
-              }}
-            />
-            <Button
-              label="Start with my pantry"
-              secondary
-              disabled={
-                !acquisition.source
-              }
-              onPress={() => {
-                update({ age: age ?? 0 });
-                done(true);
-              }}
-            />
-          </>
+          <Button label="Let’s go" onPress={done} />
         ) : (
           <Button
             label="Continue"
-            disabled={(step === 8 && !acquisition.source) || (step === 1 && !confirmed) || (step === 7 && (age === null || age < 13))}
+            disabled={
+              !answered.includes(step) ||
+              (step === 8 && !acquisition.source) ||
+              (step === 7 && (age === null || age < 13))
+            }
             onPress={next}
           />
         )
@@ -171,7 +206,12 @@ export default function Onboarding() {
           <IconButton
             icon={ArrowLeft}
             label="Previous step"
-            onPress={() => { setBackward(true); setSearch(""); scroll.current?.scrollTo({ y: 0, animated: false }); setPosition((s) => s - 1); }}
+            onPress={() => {
+              setBackward(true);
+              setSearch("");
+              scroll.current?.scrollTo({ y: 0, animated: false });
+              setPosition((s) => s - 1);
+            }}
           />
           <Progress value={(position / (order.length - 1)) * 100} />
           <LanguagePicker compact />
@@ -184,17 +224,44 @@ export default function Onboarding() {
       )}
       <Animated.View
         key={step}
-        entering={reduced ? undefined : (backward ? FadeInLeft : FadeInRight).duration(240)}
+        entering={
+          reduced
+            ? undefined
+            : (backward ? FadeInLeft : FadeInRight).duration(240)
+        }
         style={{ flexGrow: 1, gap: 16 }}
       >
         {step === 0 ? (
           <View style={{ flex: 1, justifyContent: "center", gap: 28 }}>
-            <View style={{ alignItems: "center", justifyContent: "center", paddingVertical: 12 }}>
-              <View style={{ width: "82%", maxWidth: 300, height: Math.min(height * 0.42, 340), borderRadius: 0, overflow: "hidden", backgroundColor: c.surface }}>
-                <Image source={asset0} contentFit="contain" style={{ width: "100%", height: "100%" }} />
+            <View
+              style={{
+                alignItems: "center",
+                justifyContent: "center",
+                paddingVertical: 12,
+              }}
+            >
+              <View
+                style={{
+                  width: "82%",
+                  maxWidth: 300,
+                  height: Math.min(height * 0.42, 340),
+                  borderRadius: 0,
+                  overflow: "hidden",
+                  backgroundColor: "transparent",
+                }}
+              >
+                <Image
+                  source={asset0}
+                  contentFit="contain"
+                  style={{ width: "100%", height: "100%" }}
+                />
               </View>
             </View>
-            <T bold size={40} style={{ textAlign: "center", letterSpacing: -1.6 }}>
+            <T
+              bold
+              size={40}
+              style={{ textAlign: "center", letterSpacing: -1.6 }}
+            >
               What should I{String.fromCharCode(10)}cook today?
             </T>
             <T muted style={{ textAlign: "center", paddingHorizontal: 12 }}>
@@ -203,33 +270,280 @@ export default function Onboarding() {
           </View>
         ) : (
           <>
-            <T accessibilityRole="header" bold size={34} style={{ marginTop: 12, letterSpacing: -1.2 }}>
+            <T
+              accessibilityRole="header"
+              bold
+              size={34}
+              style={{ marginTop: 12, letterSpacing: -1.2 }}
+            >
               {titles[step]}
             </T>
-            {subtitles[step] ? <T muted size={16}>{subtitles[step]}</T> : null}
-            {step === 8 ? <View style={{ gap: 10, paddingTop: 16 }}>
-              {acquisitionSources.filter(source => [Platform.OS === "android" ? "Google Play" : "App Store", "YouTube", "X", "Instagram", "TV", "Others"].includes(source)).map((source) => {
-                const index = acquisitionSources.indexOf(source);
-                const assets: Record<string, typeof asset1> = { "App Store": asset1, "Google Play": asset2, "YouTube": asset3, "X": asset4, "Instagram": asset5 };
-                const Icon = sourceIcons[index];
-                const selected = acquisition.source === source;
-                return <Pressable key={source} accessibilityRole="radio" accessibilityState={{ checked: selected }} onPress={() => { acquisition.select(source); void Haptics.selectionAsync().catch(() => {}); }} style={({ pressed }) => ({ minHeight: 68, paddingHorizontal: 18, borderRadius: 16, flexDirection: "row", alignItems: "center", gap: 16, backgroundColor: selected ? c.primary : c.surface, opacity: pressed ? 0.75 : 1 })}>
-                  {assets[source] ? <Image source={assets[source]} contentFit="contain" style={{ width: 28, height: 28 }} /> : <Icon size={23} color={selected ? c.onPrimary : c.text} />}
-                  <T style={{ flex: 1, color: selected ? c.onPrimary : c.text }}>{source}</T>
-                  {selected ? <Check size={20} color={c.onPrimary} /> : null}
-                </Pressable>;
-              })}
-            </View> : null}
-            {step === 10 || step === 11 ? <View style={{ flex: 1, justifyContent: "center", gap: 12 }}>{(step === 10 ? ["Use what I have", "Try new recipes", "Build a cooking habit"] : ["Not enough time", "Not sure what to make", "Missing ingredients"]).map(answer => <Pressable key={answer} accessibilityRole="radio" accessibilityState={{ checked: (step === 10 ? p.cookingGoal : p.cookingChallenge) === answer }} onPress={() => update(step === 10 ? { cookingGoal: answer } : { cookingChallenge: answer })} style={{ minHeight: 76, borderRadius: 16, padding: 20, justifyContent: "center", backgroundColor: (step === 10 ? p.cookingGoal : p.cookingChallenge) === answer ? c.primary : c.surface }}><T style={{ color: (step === 10 ? p.cookingGoal : p.cookingChallenge) === answer ? c.onPrimary : c.text }}>{answer}</T></Pressable>)}</View> : null}
-            {step === 12 ? <View style={{ gap: 24, paddingVertical: 28 }}><Brand width={200} /><T bold size={24}>{p.cookingGoal || "Let’s get cooking."}</T><T>{p.diet}</T><T>{p.minutes} minutes</T><T>{p.household} servings</T><T muted>Scan your ingredients, find a recipe, and cook it step by step.</T></View> : null}
-            {step === 9 ? <View style={{ flex: 1, justifyContent: "center", gap: 12, paddingVertical: 24 }}>
-              {(["Male", "Female", "Other", "Prefer not to say"] as const).map(gender => <Pressable key={gender} accessibilityRole="radio" accessibilityState={{ checked: p.gender === gender }} onPress={() => update({ gender })} style={{ minHeight: 72, borderRadius: 16, backgroundColor: p.gender === gender ? c.primary : c.surface, justifyContent: "center", alignItems: "center" }}><T style={{ color: p.gender === gender ? c.onPrimary : c.text }}>{gender}</T></Pressable>)}
-            </View> : null}
-            {step === 7 ? <View style={{ flex: 1, justifyContent: "center", paddingVertical: 28, gap: 16 }}>
-              <BirthDatePicker value={p.birthDate} onChange={birthDate => update({ birthDate })} />
-              {p.birthDate && (age === null || age < 13) ? <T accessibilityRole="alert" muted>Enter a valid date of birth. You must be 13 or older.</T> : null}
-            </View> : null}
-            {step === 2 ? <DietaryChoices /> : null}
+            {subtitles[step] ? (
+              <T muted size={16}>
+                {subtitles[step]}
+              </T>
+            ) : null}
+            {step === 8 ? (
+              <View style={{ gap: 10, paddingTop: 16 }}>
+                {acquisitionSources
+                  .filter((source) =>
+                    [
+                      Platform.OS === "android" ? "Google Play" : "App Store",
+                      "YouTube",
+                      "X",
+                      "Instagram",
+                      "TV",
+                      "Others",
+                    ].includes(source),
+                  )
+                  .map((source) => {
+                    const index = acquisitionSources.indexOf(source);
+                    const assets: Record<string, typeof asset1> = {
+                      "App Store": asset1,
+                      "Google Play": asset2,
+                      YouTube: asset3,
+                      X: asset4,
+                      Instagram: asset5,
+                    };
+                    const Icon = sourceIcons[index];
+                    const selected =
+                      answered.includes(8) && acquisition.source === source;
+                    return (
+                      <Pressable
+                        key={source}
+                        accessibilityRole="radio"
+                        accessibilityState={{ checked: selected }}
+                        onPress={() => {
+                          acquisition.select(source);
+                          mark(8);
+                          void Haptics.selectionAsync().catch(() => {});
+                        }}
+                        style={({ pressed }) => ({
+                          minHeight: 68,
+                          paddingHorizontal: 18,
+                          borderRadius: 16,
+                          flexDirection: "row",
+                          alignItems: "center",
+                          gap: 16,
+                          backgroundColor: selected ? c.primary : c.surface,
+                          opacity: pressed ? 0.75 : 1,
+                        })}
+                      >
+                        {assets[source] ? (
+                          <Image
+                            source={assets[source]}
+                            contentFit="contain"
+                            style={{ width: 28, height: 28 }}
+                          />
+                        ) : (
+                          <Icon
+                            size={23}
+                            color={selected ? c.onPrimary : c.text}
+                          />
+                        )}
+                        <T
+                          style={{
+                            flex: 1,
+                            color: selected ? c.onPrimary : c.text,
+                          }}
+                        >
+                          {source}
+                        </T>
+                        {selected ? (
+                          <Check size={20} color={c.onPrimary} />
+                        ) : null}
+                      </Pressable>
+                    );
+                  })}
+              </View>
+            ) : null}
+            {step === 10 || step === 11 ? (
+              <View style={{ flex: 1, justifyContent: "center", gap: 12 }}>
+                {(step === 10
+                  ? [
+                      "Use what I have",
+                      "Try new recipes",
+                      "Build a cooking habit",
+                    ]
+                  : [
+                      "Not enough time",
+                      "Not sure what to make",
+                      "Missing ingredients",
+                    ]
+                ).map((answer) => (
+                  <Pressable
+                    key={answer}
+                    accessibilityRole="radio"
+                    accessibilityState={{
+                      checked:
+                        answered.includes(step) &&
+                        (step === 10 ? p.cookingGoal : p.cookingChallenge) ===
+                          answer,
+                    }}
+                    onPress={() =>
+                      update(
+                        step === 10
+                          ? { cookingGoal: answer }
+                          : { cookingChallenge: answer },
+                      )
+                    }
+                    style={{
+                      minHeight: 76,
+                      borderRadius: 16,
+                      padding: 20,
+                      justifyContent: "center",
+                      backgroundColor:
+                        answered.includes(step) &&
+                        (step === 10 ? p.cookingGoal : p.cookingChallenge) ===
+                          answer
+                          ? c.primary
+                          : c.surface,
+                    }}
+                  >
+                    <T
+                      style={{
+                        color:
+                          answered.includes(step) &&
+                          (step === 10 ? p.cookingGoal : p.cookingChallenge) ===
+                            answer
+                            ? c.onPrimary
+                            : c.text,
+                      }}
+                    >
+                      {answer}
+                    </T>
+                  </Pressable>
+                ))}
+              </View>
+            ) : null}
+            {step === 12 ? (
+              <View
+                style={{
+                  flex: 1,
+                  justifyContent: "center",
+                  gap: 24,
+                  paddingVertical: 24,
+                }}
+              >
+                <View
+                  style={{
+                    alignSelf: "center",
+                    width: 104,
+                    height: 104,
+                    borderRadius: 32,
+                    backgroundColor: c.surface,
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  <ChefHat size={52} color={c.text} />
+                </View>
+                <T bold size={24} style={{ textAlign: "center" }}>
+                  A little less guessing. A lot more cooking.
+                </T>
+                <View
+                  style={{
+                    backgroundColor: c.surface,
+                    borderRadius: 24,
+                    padding: 24,
+                    gap: 20,
+                  }}
+                >
+                  {[
+                    { Icon: Utensils, text: p.diet },
+                    { Icon: Clock, text: p.minutes + " minutes" },
+                    {
+                      Icon: Users,
+                      text:
+                        p.household === 6
+                          ? "5+ people"
+                          : p.household === 4
+                            ? "3-4 people"
+                            : "1-2 people",
+                    },
+                  ].map(({ Icon, text }) => (
+                    <Row key={text}>
+                      <Icon size={22} color={c.text} />
+                      <T>{text}</T>
+                      <Check size={18} color={c.muted} />
+                    </Row>
+                  ))}
+                </View>
+                <T muted style={{ textAlign: "center" }}>
+                  Create your account next to save your preferences.
+                </T>
+              </View>
+            ) : null}
+            {step === 9 ? (
+              <View
+                style={{
+                  flex: 1,
+                  justifyContent: "center",
+                  gap: 12,
+                  paddingVertical: 24,
+                }}
+              >
+                {(
+                  ["Male", "Female", "Other", "Prefer not to say"] as const
+                ).map((gender) => (
+                  <Pressable
+                    key={gender}
+                    accessibilityRole="radio"
+                    accessibilityState={{
+                      checked: answered.includes(9) && p.gender === gender,
+                    }}
+                    onPress={() => update({ gender })}
+                    style={{
+                      minHeight: 72,
+                      borderRadius: 16,
+                      backgroundColor:
+                        answered.includes(9) && p.gender === gender
+                          ? c.primary
+                          : c.surface,
+                      justifyContent: "center",
+                      alignItems: "center",
+                    }}
+                  >
+                    <T
+                      style={{
+                        color:
+                          answered.includes(9) && p.gender === gender
+                            ? c.onPrimary
+                            : c.text,
+                      }}
+                    >
+                      {gender}
+                    </T>
+                  </Pressable>
+                ))}
+              </View>
+            ) : null}
+            {step === 7 ? (
+              <View
+                style={{
+                  flex: 1,
+                  justifyContent: "center",
+                  paddingVertical: 28,
+                  gap: 16,
+                }}
+              >
+                <BirthDatePicker
+                  value={answered.includes(7) ? p.birthDate : undefined}
+                  onChange={(birthDate) => update({ birthDate })}
+                />
+                {p.birthDate && (age === null || age < 13) ? (
+                  <T accessibilityRole="alert" muted>
+                    Enter a valid date of birth. You must be 13 or older.
+                  </T>
+                ) : null}
+              </View>
+            ) : null}
+            {step === 2 ? (
+              <DietaryChoices
+                selectionEnabled={answered.includes(2)}
+                onConfirm={(selected) => mark(2, selected)}
+              />
+            ) : null}
             {options.length && step !== 2 ? (
               <View
                 style={{
@@ -258,7 +572,19 @@ export default function Onboarding() {
                         justifyContent: "center",
                       })}
                     >
-                      {step === 5 ? <Image source={[asset6, asset7, asset8][n]} contentFit="contain" style={{ position: "absolute", left: 20, width: 32, height: 32, tintColor: chosen(n) ? c.onPrimary : c.text }} /> : null}
+                      {step === 5 ? (
+                        <Image
+                          source={[asset6, asset7, asset8][n]}
+                          contentFit="contain"
+                          style={{
+                            position: "absolute",
+                            left: 20,
+                            width: 32,
+                            height: 32,
+                            tintColor: chosen(n) ? c.onPrimary : c.text,
+                          }}
+                        />
+                      ) : null}
                       <T
                         bold={chosen(n)}
                         size={17}
@@ -274,7 +600,14 @@ export default function Onboarding() {
                 )}
               </View>
             ) : null}
-            {step === 1 ? <DietaryChoices allergy confirmed={confirmed} onConfirm={() => setConfirmed(true)} /> : null}
+            {step === 1 ? (
+              <DietaryChoices
+                allergy
+                confirmed={confirmed}
+                selectionEnabled={confirmed}
+                onConfirm={(selected) => mark(1, selected)}
+              />
+            ) : null}
             {step === 6 ? (
               <View
                 style={{
@@ -295,21 +628,31 @@ export default function Onboarding() {
                   <Pressable
                     key={code}
                     accessibilityRole="radio"
-                    accessibilityState={{ checked: p.country === code }}
+                    accessibilityState={{
+                      checked: answered.includes(6) && p.country === code,
+                    }}
                     onPress={() => update({ country: code })}
                     style={{
                       backgroundColor:
-                        p.country === code ? c.primary : c.surface,
+                        answered.includes(6) && p.country === code
+                          ? c.primary
+                          : c.surface,
                       padding: 16,
                       borderRadius: 16,
                     }}
                   >
                     <T
                       style={{
-                        color: p.country === code ? c.onPrimary : c.text,
+                        color:
+                          answered.includes(6) && p.country === code
+                            ? c.onPrimary
+                            : c.text,
                       }}
                     >
-                      {String.fromCodePoint(...[...code].map(char => 127397 + char.charCodeAt(0)))} {name}
+                      {String.fromCodePoint(
+                        ...[...code].map((char) => 127397 + char.charCodeAt(0)),
+                      )}{" "}
+                      {name}
                     </T>
                   </Pressable>
                 ))}

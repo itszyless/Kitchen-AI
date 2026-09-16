@@ -20,11 +20,11 @@ This repository contains the first working development version. It is still bein
 
 ## Latest update
 
-Version 0.3.0 introduces the Kitchen AI identity, supplied logo assets, SF Pro typography, a light default theme, refreshed onboarding, saved cooking goals, birthday selection and username setup. Google OAuth still requires owner configuration. Usernames are account display names and are not unique public handles.
+Version 0.3.0 introduces the Kitchen AI identity, supplied logo assets, SF Pro typography, a light default theme, refreshed onboarding, saved cooking goals, birthday selection and username setup. Google OAuth still requires owner configuration. Usernames are now case-insensitively unique and support password sign-in alongside email addresses. Onboarding requires explicit answers, ends with account registration, and uses a three-second branded launch transition. New Google accounts complete username setup after authentication; existing accounts sign in directly.
 
 ## Set up on another computer
 
-Install Git and Node.js 22.13 or later, then sign in to GitHub with access to this private repository.
+Install Git and Node.js 22.13 or later, then clone this public repository.
 
 ```sh
 git clone https://github.com/itszyless/Kitchen-AI.git
@@ -45,13 +45,13 @@ Physical-device camera and gesture verification is still needed. AI quality depe
 ## Features
 
 - Focused onboarding with age, food preferences and searchable allergy choices.
-- Recipe discovery, saved recipes and a collection of 790 recipes with photos and instructions from TheMealDB.
+- Recipe discovery, saved recipes and a collection of 790 recipes with photos and instructions from TheMealDB. Recipes can appear in several categories; selecting multiple filters shows recipes matching all of them.
 - Pantry quantities, ingredient matching and shopping lists.
 - Guided cooking with readable steps and timers.
 - Product search by country and barcode lookup through Open Food Facts.
 - A shared camera interface for ingredients, fridge photos and barcodes.
 - AI-assisted photo recognition and recipe-specific substitution suggestions.
-- Email authentication through Supabase.
+- Email registration with a unique username, and email or username/password authentication through Supabase.
 - English and German interface support, with recipe translation and an original-text option.
 - Light and dark themes with a phone-first layout.
 
@@ -109,7 +109,7 @@ npm run web
 
 On Windows, `scripts/Start-KitchenAI.ps1` is available if Node needs the Windows trusted certificate roots. Run the script as a file, rather than pasting its contents into a terminal.
 
-The SQL migrations and seed are in `supabase/`. The `kitchen-ai` function requires server-side `GROQ_API_KEY` and `GROQ_MODEL` secrets. Its handler validates the signed-in user and enforces usage limits. No hosted credentials are supplied in this repository.
+The SQL migrations and seed are in `supabase/`. Apply all migrations, including `202609160001_unique_usernames.sql`, and deploy `username-login` for username registration and sign-in. This password-authenticated endpoint uses `verify_jwt = false`, resolves email addresses only on the server, and rate-limits attempts. It requires the standard Supabase URL, anon key and service-role environment variables provided to Edge Functions. The `kitchen-ai` function requires server-side `GROQ_API_KEY` and `GROQ_MODEL` secrets. Its handler validates the signed-in user and enforces usage limits. No hosted credentials are supplied in this repository.
 
 ## Checks
 
@@ -126,7 +126,7 @@ The first command runs TypeScript, lint and unit tests. Database tests use embed
 - Google sign-in still needs provider configuration. Apple sign-in is deferred.
 - Kitchen AI Plus is currently free. Paid billing is not connected.
 - Translation coverage and physical-device testing are still being improved.
-- Imported recipes have limited verified dietary metadata, so preference filtering is conservative.
+- Imported recipes have limited verified dietary metadata, so preference filtering is conservative. Most imports also lack total cooking times. The “Under 20 min” filter includes only known totals below 20 minutes; verified source times are recorded in `src/data/recipeTimes.ts`. Unknown times are not guessed from the cooking instructions.
 - Store submission, account deletion and final privacy documentation remain release work.
 
 ## Data and publishing

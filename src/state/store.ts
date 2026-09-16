@@ -23,6 +23,8 @@ type CookState = {
   hydrated: boolean;
   storageError: boolean;
   onboarded: boolean;
+  onboardingAnswered: number[];
+  answerOnboarding: (step: number, answered?: boolean) => void;
   preferences: Preferences;
   pantry: PantryItem[];
   saved: string[];
@@ -54,6 +56,13 @@ export const useCook = create<CookState>()(
       hydrated: false,
       storageError: false,
       onboarded: false,
+      onboardingAnswered: [],
+      answerOnboarding: (step, answered = true) =>
+        set((s) => ({
+          onboardingAnswered: answered
+            ? [...new Set([...s.onboardingAnswered, step])]
+            : s.onboardingAnswered.filter((value) => value !== step),
+        })),
       preferences: initialPreferences,
       pantry: [],
       saved: [],
@@ -124,9 +133,13 @@ export const useCook = create<CookState>()(
       migrate: () => ({
         onboarded: false,
         preferences: initialPreferences,
-        pantry: [], saved: [], shopping: [],
+        pantry: [],
+        saved: [],
+        shopping: [],
         theme: "light" as const,
-        completed: 0, foodHistory: [], cookedDays: [],
+        completed: 0,
+        foodHistory: [],
+        cookedDays: [],
         shoppingHintSeen: false,
       }),
       storage: createJSONStorage(() => ({
@@ -142,6 +155,7 @@ export const useCook = create<CookState>()(
       })),
       partialize: (s) => ({
         onboarded: s.onboarded,
+        onboardingAnswered: s.onboardingAnswered,
         preferences: s.preferences,
         pantry: s.pantry,
         saved: s.saved,

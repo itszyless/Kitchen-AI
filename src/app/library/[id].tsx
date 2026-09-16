@@ -96,6 +96,7 @@ export default function LibraryDetail() {
             {translation.texts[0]}
           </T>
           {translation.control}
+          {recipe.minutes ? <T muted>{recipe.minutes} min total</T> : null}
           <T muted>
             {recipe.cuisine} · {recipe.category}
           </T>
