@@ -126,6 +126,8 @@ The SQL migrations and seed are in `supabase/`. Apply all migrations, including 
 5. In Supabase Authentication → URL Configuration, allow `kitchen-ai://auth` for a native development/release build and the exact browser callback used locally, such as `http://localhost:8083/auth`. Use your deployed HTTPS callback for a hosted web installation.
 6. Test a complete sign-in, cancellation, return to the app and sign-out. Native OAuth testing requires a development build with the app's URL scheme; Expo Go is not the supported OAuth test environment. Development-build configuration is planned and is not included yet.
 
+In Expo Go, Google sign-in displays an explanation before opening a browser; use email/password or guest access there. A redirect to `localhost` on a phone addresses the phone itself, not the development computer. Check the requested callback against Supabase's allowed redirect URLs when validating a development build.
+
 The local `.env` needs only your Supabase URL and publishable key. Google client secrets, Apple signing keys, AI keys and Supabase service-role credentials must remain outside client bundles and source control. See the [Supabase Google guide](https://supabase.com/docs/guides/auth/social-login/auth-google) and [Expo authentication guide](https://docs.expo.dev/guides/authentication/).
 
 ## Checks

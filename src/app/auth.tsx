@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Redirect, router, useLocalSearchParams } from "expo-router";
-import { View, Pressable } from "react-native";
+import { View, Pressable, Platform } from "react-native";
+import Constants, { ExecutionEnvironment } from "expo-constants";
 import { ArrowLeft } from "lucide-react-native";
 import * as WebBrowser from "expo-web-browser";
 import * as Linking from "expo-linking";
@@ -56,6 +57,8 @@ export default function Auth() {
   const enter = () => useCook.getState().finishOnboarding();
   const social = () =>
     run(async () => {
+      if (Platform.OS !== "web" && Constants.executionEnvironment === ExecutionEnvironment.StoreClient)
+        throw new Error("Google sign-in needs an installed Kitchen AI development or release build. In Expo Go, please use email and password or continue as a guest.");
       if (!supabase)
         throw new Error(
           "Sign-in is unavailable right now. Please try again later.",
