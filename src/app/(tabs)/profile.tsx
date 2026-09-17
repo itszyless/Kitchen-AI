@@ -114,6 +114,7 @@ export default function Profile() {
       <T bold size={24}>
         Preferences
       </T>
+      <Button secondary label="Timer notifications" onPress={() => router.push("/notifications")} />
       <T bold>Appearance</T>
       <Row>
         {(["system", "light", "dark"] as const).map((t) => (

@@ -52,6 +52,7 @@ import { Screen, T, Button, Row, IconButton, Progress } from "@/components/ui";
 import { useCook } from "@/state/store";
 import { useTheme } from "@/theme/useTheme";
 import { normalize } from "@/domain/matching";
+import { supportsTimerNotifications } from "@/services/timer-notifications";
 
 export default function Onboarding() {
   const acquisition = useAcquisition();
@@ -101,7 +102,8 @@ export default function Onboarding() {
   const done = () => {
     acquisition.submit(p);
     finish();
-    router.push({ pathname: "/auth", params: { mode: "register" } });
+    if (supportsTimerNotifications) router.push({ pathname: "/notifications", params: { onboarding: "1" } });
+    else router.push({ pathname: "/auth", params: { mode: "register" } });
   };
   const titles = [
     "Dinner starts here.",

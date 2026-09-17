@@ -26,10 +26,10 @@ Recipes support overlapping categories and combined filters. Most TheMealDB impo
 
 ## Proposed next phase (not implemented)
 
-The owner requested an explanation before further app changes. Keep these ideas deferred until work resumes:
+The owner is currently testing on iPhone through Expo Go and does not have an Android device. Keep unsupported store features deferred. Local notification permission, test alerts and cooking timer scheduling are implemented; physical iPhone verification remains pending. The following ideas are not yet implemented:
 
-- Move native testing to an Expo development build, starting with Android; validate Google redirects and prepare Apple sign-in before iOS release.
-- Add local timer notifications with contextual permission requests, cancellation/rescheduling and real-device background tests. Optional reminders should be independently controllable.
+- Move native testing to an iOS development build when signing/account setup is available; validate Google redirects and prepare Apple sign-in before iOS release. Continue using Expo Go meanwhile.
+- Validate local timer notifications on the owner's iPhone: grant/deny permission, test alert while backgrounded/locked, cancel/finish behavior and Focus settings. Remote push, optional reminders and persisted multi-timer restoration remain future work.
 - Request native store reviews after meaningful cooking use, with a cooldown. No onboarding review request, fabricated ratings, incentives or sentiment screening.
 - Evaluate store subscriptions through Apple In-App Purchase and Google Play Billing, potentially managed with RevenueCat. Proposed starting price: USD 7.99/month, with an eligible three-day trial. Prices and offers must come from the stores and display renewal terms and annual totals clearly.
 - Validate annual pricing against AI costs before selecting an annual discount. An 80% saving relative to twelve USD 7.99 payments implies roughly USD 19.18/year, not an independently chosen annual price.

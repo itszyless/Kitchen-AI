@@ -11,6 +11,7 @@ import { recipes } from "@/data/catalog";
 import { eligible } from "@/domain/matching";
 import { useCook } from "@/state/store";
 import { useTheme } from "@/theme/useTheme";
+import { scheduleTimerAlert, cancelTimerAlert } from "@/services/timer-notifications";
 export default function Cooking() {
   useKeepAwake(undefined, { suppressDeactivateWarnings: true });
   const { id, servings: servingParam } = useLocalSearchParams<{
@@ -30,6 +31,18 @@ export default function Cooking() {
   const c = useTheme();
   const language = useLanguage((s) => s.language);
   const [original, setOriginal] = useState(false);
+  const [alertStatus, setAlertStatus] = useState("");
+  useEffect(() => {
+    if (!end || !r) return;
+    let active = true;
+    let notificationId: string | null = null;
+    void scheduleTimerAlert(end, r.title).then(id => {
+      notificationId = id;
+      if (!active) { if (id) void cancelTimerAlert(id).catch(() => {}); return; }
+      setAlertStatus(id ? "A timer alert is scheduled. Phone settings may silence or delay it." : "Keep Kitchen AI open for alerts, or enable timer notifications in Profile.");
+    }).catch(() => { if (active) setAlertStatus("Couldn't schedule an alert. Keep Kitchen AI open for this timer."); });
+    return () => { active = false; if (notificationId) void cancelTimerAlert(notificationId).catch(() => {}); };
+  }, [end, r]);
   useEffect(() => {
     if (!end) return;
     const tick = () => {
@@ -156,6 +169,7 @@ export default function Cooking() {
           label={"Start " + current.seconds / 60 + ":00 timer"}
           onPress={() => {
             setTimerDone(false);
+            setAlertStatus("Scheduling timer alert…");
             setRemaining(current.seconds || 0);
             setEnd(Date.now() + (current.seconds || 0) * 1000);
           }}
@@ -177,7 +191,7 @@ export default function Cooking() {
         </T>
       ) : null}
       <T size={12} muted>
-        Keep Kitchen AI open for timer alerts.
+        {alertStatus || "Enable timer notifications in Profile for alerts outside the app. Leaving this cooking screen cancels its timer alert."}
       </T>
     </Screen>
   );

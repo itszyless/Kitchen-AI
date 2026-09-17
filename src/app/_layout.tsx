@@ -64,6 +64,7 @@ function Routes() {
       >
         <Stack.Screen name="onboarding" />
         <Stack.Screen name="auth" />
+        <Stack.Screen name="notifications" />
         <Stack.Screen name="username" />
         <Stack.Protected
           guard={
