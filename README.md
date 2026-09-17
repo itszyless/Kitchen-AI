@@ -10,6 +10,10 @@
 A mobile cooking companion built with React Native and Expo.
 
 **AI-Assisted Development · Learning Project · Version 0.3.0**
+
+**BETA · Actively developed**
+
+Kitchen AI is in active development. Features, design and reliability are being refined through ongoing testing and feedback. This repository documents the current beta and its progress toward a public release.
 </div>
 
 ## About
@@ -20,7 +24,7 @@ This repository contains the first working development version. It is still bein
 
 ## Latest update
 
-Version 0.3.0 introduces the Kitchen AI identity, supplied logo assets, SF Pro typography, a light default theme, refreshed onboarding, saved cooking goals, birthday selection and username setup. Google OAuth still requires owner configuration. Usernames are case-insensitively unique and support password sign-in alongside email addresses. Onboarding requires explicit answers and ends with optional account registration or guest access. Guests can browse recipes, manage their pantry and shopping list, and sign in or register later from Profile. AI scanning, substitutions and translation require an account. Email registration stays on a confirmation screen until the email is verified, then continues without re-entering credentials. Native authentication uses Expo Crypto for SHA-256 PKCE, and the date picker uses its current value/dismiss callbacks. New Google accounts complete username setup after authentication; existing accounts sign in directly.
+Version 0.3.0 introduces the Kitchen AI identity, supplied logo assets, SF Pro typography, a light default theme, refreshed onboarding, saved cooking goals, birthday selection and username setup. Google OAuth is enabled for the development backend; end-to-end device validation remains pending. Independent installations require their own provider configuration. Usernames are case-insensitively unique and support password sign-in alongside email addresses. Onboarding requires explicit answers and ends with optional account registration or guest access. Guests can browse recipes, manage their pantry and shopping list, and sign in or register later from Profile. AI scanning, substitutions and translation require an account. Email registration stays on a confirmation screen until the email is verified, then continues without re-entering credentials. Native authentication uses Expo Crypto for SHA-256 PKCE, and the date picker uses its current value/dismiss callbacks. New Google accounts complete username setup after authentication; existing accounts sign in directly.
 
 ## Set up on another computer
 
@@ -80,7 +84,7 @@ My role included defining the product idea, describing the intended behavior, wr
 - **React Native:** How screens, reusable components, navigation and application state fit together.
 - **Expo and Expo Go:** How to run a mobile project, use a phone preview and understand the difference between a preview and a release build.
 - **Supabase:** Initial experience with authentication, database tables, access policies and server-side functions.
-- **Google Cloud:** Basic familiarity with the console and OAuth configuration. Google sign-in is not yet fully configured in this version.
+- **Google Cloud:** Configuring OAuth clients, consent settings and the Supabase authentication provider.
 - **AI prompting and vibe coding:** How to turn an idea into smaller requests, provide useful feedback and refine generated implementations.
 - **Debugging:** How runtime errors, type checks and tests help reveal problems that are not obvious from the interface.
 - **API integration:** Why external services need validation, error handling, usage limits and protected credentials.
@@ -111,6 +115,17 @@ On Windows, `scripts/Start-KitchenAI.ps1` is available if Node needs the Windows
 
 The SQL migrations and seed are in `supabase/`. Apply all migrations, including `202609160001_unique_usernames.sql`, and deploy `username-login` for username registration and sign-in. This password-authenticated endpoint uses `verify_jwt = false`, resolves email addresses only on the server, and rate-limits attempts. It requires the standard Supabase URL, anon key and service-role environment variables provided to Edge Functions. The `kitchen-ai` function requires server-side `GROQ_API_KEY` and `GROQ_MODEL` secrets. Its handler validates the signed-in user and enforces usage limits. No hosted credentials are supplied in this repository.
 
+## Configure Google sign-in for your own installation
+
+1. Create your own Supabase project and apply the backend setup above.
+2. In Google Cloud, configure Google Auth Platform branding and audience. Add test users if the consent screen is in testing mode.
+3. Create a **Web application** OAuth client for the Supabase browser-based flow. Add `https://<your-project-ref>.supabase.co/auth/v1/callback` as an authorized redirect URI.
+4. In Supabase Authentication → Sign In / Providers → Google, enable the provider and enter the Google client ID and client secret. Keep the secret in Supabase, never in the app, README or Git repository.
+5. In Supabase Authentication → URL Configuration, allow `kitchen-ai://auth` for a native development/release build and the exact browser callback used locally, such as `http://localhost:8083/auth`. Use your deployed HTTPS callback for a hosted web installation.
+6. Test a complete sign-in, cancellation, return to the app and sign-out. Native OAuth testing requires a development build with the app's URL scheme; Expo Go is not the supported OAuth test environment. Development-build configuration is planned and is not included yet.
+
+The local `.env` needs only your Supabase URL and publishable key. Google client secrets, Apple signing keys, AI keys and Supabase service-role credentials must remain outside client bundles and source control. See the [Supabase Google guide](https://supabase.com/docs/guides/auth/social-login/auth-google) and [Expo authentication guide](https://docs.expo.dev/guides/authentication/).
+
 ## Checks
 
 ```sh
@@ -123,7 +138,7 @@ The first command runs TypeScript, lint and unit tests. Database tests use embed
 ## Current limits
 
 - Pantry and other kitchen state are stored on the device. Complete account-based cloud synchronization is unfinished.
-- Google sign-in still needs provider configuration. Apple sign-in is deferred.
+- Google sign-in is enabled on the development backend; full device validation is pending. Independent deployments need their own credentials and redirect configuration. Apple sign-in is deferred.
 - Kitchen AI Plus is currently free. Paid billing is not connected.
 - Translation coverage and physical-device testing are still being improved.
 - Imported recipes have limited verified dietary metadata, so preference filtering is conservative. Most imports also lack total cooking times. The “Under 20 min” filter includes only known totals below 20 minutes; verified source times are recorded in `src/data/recipeTimes.ts`. Unknown times are not guessed from the cooking instructions.
