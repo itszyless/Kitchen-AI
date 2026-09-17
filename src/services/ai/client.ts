@@ -1,9 +1,10 @@
 import { supabase } from "@/services/supabase/client";
 import { reuseSubstitution } from "./request-cache";
 export async function kitchenAI(body: Record<string, unknown>) {
-  if (body.action !== "substitute" || !supabase) return invoke(body);
+  if (!supabase) throw new Error("AI is unavailable right now.");
   const { data } = await supabase.auth.getSession();
   if (!data.session) throw new Error("Please sign in before using AI.");
+  if (body.action !== "substitute") return invoke(body);
   const key = JSON.stringify([data.session.user.id, body]);
   return reuseSubstitution(key, () => invoke(body));
 }

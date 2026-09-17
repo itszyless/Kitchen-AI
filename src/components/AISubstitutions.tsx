@@ -10,6 +10,7 @@ import { router } from "expo-router";
 import { ingredientById } from "@/data/catalog";
 import { safeIngredient, normalize } from "@/domain/matching";
 import { kitchenAI } from "@/services/ai/client";
+import { useAuth } from "@/services/supabase/AuthProvider";
 const schema = z.object({
   suggestions: z
     .array(
@@ -31,6 +32,7 @@ export function AISubstitutions({
   recipe: string;
 }) {
   const language = useLanguage((s) => s.language);
+  const { session } = useAuth();
   const limit = substitutionLimit();
   const pantry = useCook((s) => s.pantry);
   const preferences = useCook((s) => s.preferences);
@@ -179,9 +181,13 @@ export function AISubstitutions({
   useEffect(() => {
     // Opening this ingredient starts an external request and its loading state.
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    if (pantry.length) void ask();
+    if (session && pantry.length) void ask();
     return () => { requestVersion.current += 1; };
-  }, [ask, pantry.length]);
+  }, [ask, pantry.length, session]);
+  if (!session) return <View style={{ gap: 10 }}>
+    <T>Create an account to get AI substitution ideas for this recipe.</T>
+    <Button label="Create account" onPress={() => router.push({ pathname: "/auth", params: { mode: "register" } })} />
+  </View>;
   return (
     <View style={{ gap: 10 }}>
       {busy ? <T accessibilityLiveRegion="polite">Checking this recipe…</T> : null}

@@ -54,7 +54,7 @@ function Routes() {
       ready={ready && hydrated && (fontsLoaded || Boolean(fontError))}
     >
       <Stack
-        initialRouteName={onboarded ? "auth" : "onboarding"}
+        initialRouteName={onboarded ? "(tabs)" : "onboarding"}
         screenOptions={{
           headerShown: false,
           animation: "slide_from_right",
@@ -67,7 +67,7 @@ function Routes() {
         <Stack.Screen name="username" />
         <Stack.Protected
           guard={
-            Boolean(session && !needsSocialUsername(session.user)) && onboarded
+            (!session || !needsSocialUsername(session.user)) && onboarded
           }
         >
           <Stack.Screen name="(tabs)" />

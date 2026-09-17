@@ -72,13 +72,12 @@ function Tab({
   );
 }
 export default function Layout() {
-  const { session, ready } = useAuth();
+  const { ready } = useAuth();
   const onboarded = useCook((s) => s.onboarded);
   const c = useTheme();
   const insets = useSafeAreaInsets();
   if (!onboarded) return <Redirect href="/onboarding" />;
   if (!ready) return <Loading />;
-  if (!session) return <Redirect href="/auth" />;
   return (
     <Tabs style={{ flex: 1, backgroundColor: c.bg }}>
       <TabSlot style={{ flex: 1 }} />

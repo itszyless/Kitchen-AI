@@ -20,7 +20,7 @@ This repository contains the first working development version. It is still bein
 
 ## Latest update
 
-Version 0.3.0 introduces the Kitchen AI identity, supplied logo assets, SF Pro typography, a light default theme, refreshed onboarding, saved cooking goals, birthday selection and username setup. Google OAuth still requires owner configuration. Usernames are now case-insensitively unique and support password sign-in alongside email addresses. Onboarding requires explicit answers, ends with account registration, and uses a three-second branded launch transition. New Google accounts complete username setup after authentication; existing accounts sign in directly.
+Version 0.3.0 introduces the Kitchen AI identity, supplied logo assets, SF Pro typography, a light default theme, refreshed onboarding, saved cooking goals, birthday selection and username setup. Google OAuth still requires owner configuration. Usernames are case-insensitively unique and support password sign-in alongside email addresses. Onboarding requires explicit answers and ends with optional account registration or guest access. Guests can browse recipes, manage their pantry and shopping list, and sign in or register later from Profile. AI scanning, substitutions and translation require an account. Email registration stays on a confirmation screen until the email is verified, then continues without re-entering credentials. Native authentication uses Expo Crypto for SHA-256 PKCE, and the date picker uses its current value/dismiss callbacks. New Google accounts complete username setup after authentication; existing accounts sign in directly.
 
 ## Set up on another computer
 

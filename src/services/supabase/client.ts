@@ -1,3 +1,4 @@
+import "./crypto";
 import { chunkedStorage } from "./chunkedStorage";
 import "react-native-url-polyfill/auto";
 import { createClient } from "@supabase/supabase-js";

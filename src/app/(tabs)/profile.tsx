@@ -60,23 +60,26 @@ export default function Profile() {
         </View>
       </Row>
       <T bold size={14}>
-        {membership.label}
+        {session ? membership.label : "Guest"}
       </T>
       <T muted size={12}>
-        Included with your account.
+        {session ? "Included with your account." : "Your kitchen is saved on this device. Create an account to use AI features."}
       </T>
       {session?.user.email ? (
         <T muted size={13}>
           {session.user.email}
         </T>
       ) : null}
-      <Button
+      {!session ? <>
+        <Button label="Create account" onPress={() => router.push({ pathname: "/auth", params: { mode: "register" } })} />
+        <Button secondary label="Sign in" onPress={() => router.push("/auth")} />
+      </> : <Button
         label="Sign out"
         secondary
         onPress={() => {
           void supabase?.auth.signOut();
         }}
-      />
+      />}
       <View>
         {[
           {

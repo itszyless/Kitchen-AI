@@ -13,8 +13,10 @@ import { kitchenAI } from "@/services/ai/client";
 import { recognitionCandidates } from "@/services/ai/results";
 import { barcodeSchema } from "@/services/products/provider";
 import { useScan } from "@/state/scan";
+import { useAuth } from "@/services/supabase/AuthProvider";
 type Mode = "Fridge" | "Ingredients" | "Barcode";
 export default function Capture() {
+  const { session } = useAuth();
   const params = useLocalSearchParams<{ mode?: string }>();
   const [mode, setMode] = useState<Mode>(
     params.mode === "barcode"
@@ -28,6 +30,7 @@ export default function Capture() {
   useEffect(() => {
     if (
       Platform.OS === "web" ||
+      (!session && mode !== "Barcode") ||
       !permission ||
       permission.granted ||
       !permission.canAskAgain ||
@@ -36,7 +39,7 @@ export default function Capture() {
       return;
     permissionAsked.current = true;
     void requestPermission().catch(() => {});
-  }, [permission, requestPermission]);
+  }, [permission, requestPermission, session, mode]);
 
   const [active, setActive] = useState(AppState.currentState === "active");
   const [focused, setFocused] = useState(true);
@@ -139,6 +142,14 @@ export default function Capture() {
       setBusy(false);
     }
   };
+  if (!session && mode !== "Barcode") return <Screen>
+    <Button secondary label="Back" onPress={() => router.canGoBack() ? router.back() : router.replace("/")} />
+    <T bold size={30}>Unlock AI scanning</T>
+    <T>Create an account to recognize ingredients from photos. You can keep adding ingredients manually or scan barcodes as a guest.</T>
+    <Button label="Create account" onPress={() => router.push({ pathname: "/auth", params: { mode: "register" } })} />
+    <Button secondary label="Sign in" onPress={() => router.push("/auth")} />
+    <Button secondary label="Scan a barcode" onPress={() => setMode("Barcode")} />
+  </Screen>;
   if (Platform.OS === "web" || !permission?.granted)
     return (
       <Screen>

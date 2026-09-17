@@ -31,6 +31,7 @@ export default function Auth() {
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
+  const [confirmation, setConfirmation] = useState(false);
   const c = useTheme();
   const run = async (action: () => Promise<void>) => {
     setBusy(true);
@@ -60,11 +61,17 @@ export default function Auth() {
           "Sign-in is unavailable right now. Please try again later.",
         );
       const redirectTo = Linking.createURL("auth");
+      const settings = await fetch(`${process.env.EXPO_PUBLIC_SUPABASE_URL}/auth/v1/settings`, {
+        headers: { apikey: process.env.EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY ?? "" },
+      });
+      if (!settings.ok) throw new Error("Could not check Google sign-in. Please try again.");
+      const providers = await settings.json();
+      if (!providers.external?.google) throw new Error("Google sign-in is not configured yet. Please use email or continue as a guest.");
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: { redirectTo, skipBrowserRedirect: true },
       });
-      if (error) throw error;
+      if (error) throw new Error(error.message.includes("provider") ? "Google sign-in is not configured yet. Please use email or continue as a guest." : error.message);
       if (!data.url)
         throw new Error("The sign-in provider did not return a login page.");
       const result = await WebBrowser.openAuthSessionAsync(
@@ -113,9 +120,9 @@ export default function Auth() {
           );
         if (data.session) enter();
         else {
-          setRegister(false);
+          setConfirmation(true);
           setMessage(
-            "Check your email to confirm your account, then return here to sign in.",
+            "Check your email to confirm your account, then tap below to continue. Your details are already filled in.",
           );
         }
       } else if (identifier.includes("@")) {
@@ -161,14 +168,29 @@ export default function Auth() {
         <LanguagePicker compact />
       </Row>
       <T bold size={34}>
-        {register ? "Create your account" : "Welcome back."}
+        {confirmation ? "Check your email" : register ? "Create your account" : "Welcome back."}
       </T>
       <T muted>
         {register
           ? "Save your preferences and make this kitchen yours."
           : "Sign in to your Kitchen AI account."}
       </T>
-      <View style={{ gap: 14, paddingTop: 16 }}>
+      {confirmation ? <View style={{ gap: 16 }}>
+        <T>We sent a confirmation link to {identifier.trim()}. Open it, then return here.</T>
+        {message ? <T accessibilityRole="alert">{message}</T> : null}
+        <Button label={busy ? "Please wait…" : "I've confirmed my email"} disabled={busy} onPress={() => void run(async () => {
+          if (!supabase) throw new Error("Sign-in is unavailable.");
+          const { error } = await supabase.auth.signInWithPassword({ email: identifier.trim(), password });
+          if (error) throw new Error("Please confirm the email first, then try again.");
+          enter();
+        })} />
+        <Button secondary label="Resend confirmation email" disabled={busy} onPress={() => void run(async () => {
+          if (!supabase) throw new Error("Sign-in is unavailable.");
+          const { error } = await supabase.auth.resend({ type: "signup", email: identifier.trim() });
+          if (error) throw error;
+          setMessage("Confirmation email sent. Check your inbox and spam folder.");
+        })} />
+      </View> : <><View style={{ gap: 14, paddingTop: 16 }}>
         {register ? (
           <>
             <Field
@@ -230,23 +252,25 @@ export default function Auth() {
         <View style={{ flex: 1, height: 1, backgroundColor: c.border }} />
       </Row>
       <GoogleButton disabled={busy} onPress={() => void social()} />
+      </>}
       <Pressable
         accessibilityRole="button"
         disabled={busy}
         onPress={() => {
           setMessage("");
-          if (!register) router.replace("/onboarding");
-          else setRegister(false);
+          setConfirmation(false);
+          setRegister(!register);
         }}
         style={{ minHeight: 44, justifyContent: "center" }}
       >
         <T size={14} style={{ textAlign: "center" }}>
           {register ? "Already have an account? " : "New to Kitchen AI? "}
           <T size={14} bold>
-            {register ? "Sign in" : "Get started"}
+            {register ? "Sign in" : "Create account"}
           </T>
         </T>
       </Pressable>
+      <Button secondary label="Continue as guest" disabled={busy} onPress={() => { enter(); router.replace("/"); }} />
     </Screen>
   );
 }
