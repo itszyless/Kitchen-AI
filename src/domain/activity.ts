@@ -15,6 +15,19 @@ export function cookingStreak(days: string[], now = new Date()) {
   }
   return { count, active };
 }
+export function cookingWeek(days: string[], now = new Date()) {
+  const monday = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 12);
+  monday.setDate(monday.getDate() - ((monday.getDay() + 6) % 7));
+  const completed = new Set(days);
+  return ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map(
+    (label, index) => {
+      const date = new Date(monday);
+      date.setDate(date.getDate() + index);
+      const key = dayKey(date);
+      return { label, key, done: key <= dayKey(now) && completed.has(key) };
+    },
+  );
+}
 export function addHistory(
   history: FoodHistory[],
   items: PantryItem[],

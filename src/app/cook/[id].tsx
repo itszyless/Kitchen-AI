@@ -36,13 +36,13 @@ export default function Cooking() {
     if (!end || !r) return;
     let active = true;
     let notificationId: string | null = null;
-    void scheduleTimerAlert(end, r.title).then(id => {
+    void scheduleTimerAlert(end, r.title, p.notificationsEnabled !== false).then(id => {
       notificationId = id;
       if (!active) { if (id) void cancelTimerAlert(id).catch(() => {}); return; }
-      setAlertStatus(id ? "A timer alert is scheduled. Phone settings may silence or delay it." : "Keep Kitchen AI open for alerts, or enable timer notifications in Profile.");
+      setAlertStatus(id ? "A timer alert is scheduled. Phone settings may silence or delay it." : "Keep Kitchen AI open for alerts, or enable Notifications in Settings.");
     }).catch(() => { if (active) setAlertStatus("Couldn't schedule an alert. Keep Kitchen AI open for this timer."); });
     return () => { active = false; if (notificationId) void cancelTimerAlert(notificationId).catch(() => {}); };
-  }, [end, r]);
+  }, [end, r, p.notificationsEnabled]);
   useEffect(() => {
     if (!end) return;
     const tick = () => {

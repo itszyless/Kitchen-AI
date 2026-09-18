@@ -6,6 +6,8 @@ Kitchen AI is an actively developed beta with a public GitHub repository, a conf
 
 ## Validation
 
+The September profile refresh adds supplied icons, native glass surfaces with fallbacks, a streak dialog, local visibility choices and notification controls. Verify keyboard avoidance, Reduce Transparency, both themes and notification toggling on a physical iPhone. Profile visibility is currently a local preview; public sharing needs an authenticated server projection that never exposes hidden fields. Recipe publishing and moderation remain deferred.
+
 Test camera permission, manual photo capture, barcode scanning, cooking timers, gestures and the new onboarding on real iOS and Android devices. Run realistic substitution examples against the live service and check translated explanations. Browser previews cannot verify native behavior.
 
 ## Accounts and data
@@ -31,7 +33,7 @@ The owner is currently testing on iPhone through Expo Go and does not have an An
 - Move native testing to an iOS development build when signing/account setup is available; validate Google redirects and prepare Apple sign-in before iOS release. Continue using Expo Go meanwhile.
 - Validate local timer notifications on the owner's iPhone: grant/deny permission, test alert while backgrounded/locked, cancel/finish behavior and Focus settings. Remote push, optional reminders and persisted multi-timer restoration remain future work.
 - Request native store reviews after meaningful cooking use, with a cooldown. No onboarding review request, fabricated ratings, incentives or sentiment screening.
-- Evaluate store subscriptions through Apple In-App Purchase and Google Play Billing, potentially managed with RevenueCat. Proposed starting price: USD 7.99/month, with an eligible three-day trial. Prices and offers must come from the stores and display renewal terms and annual totals clearly.
+- Evaluate store subscriptions through Apple In-App Purchase and Google Play Billing, potentially managed with RevenueCat. Proposed starting price: USD 7.99/month. The three-day free trial is exclusively for the yearly plan; no monthly trial. Prices and offers must come from the stores and display renewal terms and annual totals clearly.
 - Validate annual pricing against AI costs before selecting an annual discount. An 80% saving relative to twelve USD 7.99 payments implies roughly USD 19.18/year, not an independently chosen annual price.
 - Consider a genuine 40% introductory offer with explicit duration and renewal pricing. A Kitchen AI branded wheel/reveal is a visual concept only; do not present predetermined outcomes as random or use false scarcity. Restore purchases must always restore purchases.
 - Enforce Plus access and usage limits server-side. Handle store verification, expiration, renewal, refunds and billing grace periods. Cancellation normally retains access through the paid period. An owner entitlement should be assigned securely by user ID, never a client-side toggle.

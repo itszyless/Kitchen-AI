@@ -30,7 +30,7 @@ export function CookSheet({
     >
       <View style={{ flex: 1, justifyContent: "flex-end" }}>
         <Pressable
-          accessibilityLabel={t("Close filters")}
+          accessibilityLabel={t("Close") + " " + t(title)}
           accessibilityRole="button"
           onPress={onClose}
           style={{
@@ -67,10 +67,15 @@ export function CookSheet({
             <T bold size={24} style={{ flex: 1 }}>
               {title}
             </T>
-            <IconButton icon={X} label={t("Close filters")} onPress={onClose} />
+            <IconButton
+              icon={X}
+              label={t("Close") + " " + t(title)}
+              onPress={onClose}
+            />
           </Row>
           <ScrollView
             keyboardShouldPersistTaps="handled"
+            automaticallyAdjustKeyboardInsets
             contentContainerStyle={{
               paddingHorizontal: 24,
               gap: 20,

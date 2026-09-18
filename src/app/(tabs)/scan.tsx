@@ -1,3 +1,4 @@
+import { AppIcon } from "@/components/app-icon";
 import appIcon from "../../../assets/images/app-icon.png";
 import { router } from "expo-router";
 import { View, Pressable } from "react-native";
@@ -89,7 +90,11 @@ export default function Scan() {
                   justifyContent: "center",
                 }}
               >
-                <Icon color={c.text} size={24} />
+                {title === "Scan fridge" ? (
+                  <AppIcon name="pantry" size={24} />
+                ) : (
+                  <Icon color={c.text} size={24} />
+                )}
               </View>
               <View style={{ flex: 1, gap: 4 }}>
                 <T bold size={17}>

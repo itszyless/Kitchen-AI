@@ -1,30 +1,16 @@
 import { Brand } from "@/components/Brand";
-import { cookingStreak } from "@/domain/activity";
-import { Flame } from "lucide-react-native";
+import { Streak } from "@/components/streak";
+import { AppIcon } from "@/components/app-icon";
 import { router } from "expo-router";
 import { View, ScrollView, Pressable } from "react-native";
-import {
-  ShoppingBasket,
-  ChevronRight,
-  UserRound,
-  Refrigerator,
-} from "lucide-react-native";
-import {
-  Screen,
-  T,
-  Row,
-  IconButton,
-  Empty,
-  SectionHeader,
-} from "@/components/ui";
+import { ChevronRight } from "lucide-react-native";
+import { Screen, T, Row, Empty, SectionHeader } from "@/components/ui";
 import { RecipeCard } from "@/components/RecipeCard";
 import { recipes } from "@/data/catalog";
 import { eligible, match } from "@/domain/matching";
 import { useCook } from "@/state/store";
 import { useTheme } from "@/theme/useTheme";
 export default function Home() {
-  const cookedDays = useCook((s) => s.cookedDays);
-  const streak = cookingStreak(cookedDays);
   const c = useTheme();
   const p = useCook((s) => s.preferences);
   const pantry = useCook((s) => s.pantry);
@@ -42,32 +28,11 @@ export default function Home() {
     <Screen style={{ gap: 22 }}>
       <Row style={{ justifyContent: "space-between" }}>
         <View>
-          <Brand />
+          <Brand width={140} />
         </View>
-        <Row style={{ gap: 8 }}>
-          <Row style={{ gap: 3 }}>
-            <Flame
-              size={22}
-              color={streak.active ? "#F15A38" : c.muted}
-              fill={streak.active ? "#F15A38" : "transparent"}
-            />
-            <T bold style={{ color: streak.active ? "#F15A38" : c.muted }}>
-              {streak.count.toLocaleString("en-US")}
-            </T>
-          </Row>
-          <IconButton
-            icon={ShoppingBasket}
-            label="Shopping list"
-            onPress={() => router.push("/shopping")}
-          />
-          <IconButton
-            icon={UserRound}
-            label="My profile"
-            onPress={() => router.push("/profile")}
-          />
-        </Row>
+        <Streak />
       </Row>
-      <T bold size={32}>
+      <T bold size={29}>
         What should I cook today?
       </T>
       {hero ? (
@@ -90,7 +55,7 @@ export default function Home() {
           <View
             style={{ padding: 12, backgroundColor: c.soft, borderRadius: 15 }}
           >
-            <Refrigerator size={24} color={c.primary} />
+            <AppIcon name="pantry" size={24} color={c.primary} />
           </View>
           <View style={{ flex: 1, gap: 3 }}>
             <T bold size={16}>

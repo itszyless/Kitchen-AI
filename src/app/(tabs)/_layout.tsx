@@ -1,4 +1,3 @@
-import { useTranslate } from "@/i18n";
 import { Redirect, router } from "expo-router";
 import {
   Tabs,
@@ -7,65 +6,57 @@ import {
   TabSlot,
   TabTriggerSlotProps,
 } from "expo-router/ui";
-import { Pressable, View } from "react-native";
-import {
-  Home,
-  Compass,
-  ScanLine,
-  Refrigerator,
-  UserRound,
-  LucideIcon,
-} from "lucide-react-native";
+import { Pressable, View, Platform } from "react-native";
+import { ScanLine } from "lucide-react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useCook } from "@/state/store";
 import { useTheme } from "@/theme/useTheme";
 import { T, Loading } from "@/components/ui";
+import { AppIcon, AppIconName } from "@/components/app-icon";
+import { GlassSurface } from "@/components/glass-surface";
 import { useAuth } from "@/services/supabase/AuthProvider";
 function Tab({
-  icon: Icon,
+  name,
   label,
   center = false,
   isFocused,
   ...props
 }: TabTriggerSlotProps & {
-  icon: LucideIcon;
+  name?: AppIconName;
   label: string;
   center?: boolean;
 }) {
   const c = useTheme();
-  const t = useTranslate();
   return (
     <Pressable
       {...props}
       accessibilityRole="tab"
-      accessibilityLabel={t(label)}
+      accessibilityLabel={label}
       accessibilityState={{ selected: isFocused }}
-      aria-selected={isFocused}
       style={{
         flex: 1,
         alignItems: "center",
-        gap: 5,
-        paddingVertical: 8,
-        minHeight: 60,
+        justifyContent: "center",
+        gap: 1,
+        paddingVertical: 7,
+        minHeight: 56,
+        borderRadius: 30,
+        backgroundColor: isFocused ? c.soft : "transparent",
       }}
     >
-      <View
-        style={{
-          backgroundColor: center ? c.ink : isFocused ? c.soft : "transparent",
-          padding: center ? 13 : 5,
-          borderRadius: 22,
-          borderBottomWidth: 0,
-          borderBottomColor: c.primary,
-          marginTop: center ? -15 : 0,
-        }}
-      >
-        <Icon
-          size={center ? 27 : 23}
-          color={center ? "#FFFFFF" : isFocused ? c.primary : c.muted}
-          strokeWidth={isFocused ? 2.5 : 1.8}
+      {center ? (
+        <View style={{ backgroundColor: c.ink, padding: 5, borderRadius: 16 }}>
+          <ScanLine size={23} color="#FFFFFF" />
+        </View>
+      ) : (
+        <AppIcon
+          name={name!}
+          filled={isFocused}
+          size={23}
+          color={isFocused ? c.text : c.muted}
         />
-      </View>
-      <T size={11} bold={isFocused} muted={!isFocused}>
+      )}
+      <T size={10} bold={isFocused} muted={!isFocused}>
         {label}
       </T>
     </Pressable>
@@ -81,39 +72,34 @@ export default function Layout() {
   return (
     <Tabs style={{ flex: 1, backgroundColor: c.bg }}>
       <TabSlot style={{ flex: 1 }} />
-      <TabList
-        style={{
-          backgroundColor: c.nav,
-          borderTopWidth: 1,
-          borderColor: c.border,
-          paddingTop: 10,
-          paddingBottom: Math.max(insets.bottom, 8),
-          paddingHorizontal: 12,
-          width: "100%",
-          maxWidth: 600,
-          alignSelf: "center",
-        }}
-      >
-        <TabTrigger name="home" href="/" asChild>
-          <Tab icon={Home} label="Home" />
-        </TabTrigger>
-        <TabTrigger name="discover" href="/discover" asChild>
-          <Tab icon={Compass} label="Discover" />
-        </TabTrigger>
-        <View style={{ flex: 1 }}>
-          <Tab
-            icon={ScanLine}
-            label="Scan"
-            center
-            onPress={() => router.push("/capture")}
-          />
-        </View>
-        <TabTrigger name="pantry" href="/pantry" asChild>
-          <Tab icon={Refrigerator} label="Pantry" />
-        </TabTrigger>
-        <TabTrigger name="profile" href="/profile" asChild>
-          <Tab icon={UserRound} label="Profile" />
-        </TabTrigger>
+      <TabList asChild>
+        <GlassSurface
+          style={{
+            borderRadius: 36,
+            padding: 4,
+            marginTop: 6,
+            marginBottom: Math.max(insets.bottom, 8),
+            width: Platform.OS === "ios" ? "92%" : "96%",
+            maxWidth: 600,
+            alignSelf: "center",
+          }}
+        >
+          <TabTrigger name="home" href="/" asChild>
+            <Tab name="home" label="Home" />
+          </TabTrigger>
+          <TabTrigger name="discover" href="/discover" asChild>
+            <Tab name="recipes" label="Recipes" />
+          </TabTrigger>
+          <View style={{ flex: 1 }}>
+            <Tab label="Scan" center onPress={() => router.push("/capture")} />
+          </View>
+          <TabTrigger name="pantry" href="/pantry" asChild>
+            <Tab name="pantry" label="Pantry" />
+          </TabTrigger>
+          <TabTrigger name="profile" href="/profile" asChild>
+            <Tab name="profile" label="Profile" />
+          </TabTrigger>
+        </GlassSurface>
       </TabList>
     </Tabs>
   );

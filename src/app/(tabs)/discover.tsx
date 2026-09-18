@@ -88,7 +88,7 @@ export default function Discover() {
     <Screen>
       <Row style={{ justifyContent: "space-between" }}>
         <T size={32} bold>
-          Discover
+          Recipes
         </T>
         <IconButton
           icon={SlidersHorizontal}

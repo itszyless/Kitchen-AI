@@ -1,7 +1,32 @@
 import { describe, it, expect } from "vitest";
-import { cookingStreak, addHistory } from "../src/domain/activity";
+import { cookingStreak, cookingWeek, addHistory } from "../src/domain/activity";
 import { substitutionLimit } from "../src/services/entitlements";
 describe("daily cooking streak", () => {
+  it("starts the week on Monday across a year boundary", () => {
+    const week = cookingWeek(
+      ["2025-12-29", "2026-01-01"],
+      new Date(2026, 0, 1),
+    );
+    expect(week.map((day) => day.key)).toEqual([
+      "2025-12-29",
+      "2025-12-30",
+      "2025-12-31",
+      "2026-01-01",
+      "2026-01-02",
+      "2026-01-03",
+      "2026-01-04",
+    ]);
+    expect(week.filter((day) => day.done).map((day) => day.label)).toEqual([
+      "Mon",
+      "Thu",
+    ]);
+  });
+  it("keeps Sunday in the same week and does not mark future dates", () => {
+    expect(cookingWeek([], new Date(2026, 8, 20))[0].key).toBe("2026-09-14");
+    expect(cookingWeek(["2026-09-20"], new Date(2026, 8, 18))[6].done).toBe(
+      false,
+    );
+  });
   it("counts a date only once", () =>
     expect(
       cookingStreak(

@@ -32,4 +32,6 @@ Product results come from Open Food Facts and retain their source licensing and 
 
 ## Supplied visual assets
 
+The navigation, profile, settings, notification, password visibility and streak PNGs in `assets/images/icons/ui/` were supplied by the owner for this interface refresh. Their original transparent files are included unchanged.
+
 SF Pro Display font files, the Kitchen AI identity, the welcome mockup and platform icons were supplied by the project owner. SF Pro and third-party platform marks retain their respective rights. Verify permitted use for each target platform before distribution; inclusion here does not grant a separate font or trademark license.

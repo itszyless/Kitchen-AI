@@ -1,6 +1,10 @@
-import { PropsWithChildren, ReactNode, Children, Ref } from "react";
+import { PropsWithChildren, ReactNode, Children, Ref, useState } from "react";
+import { AppIcon } from "./app-icon";
+import { GlassSurface } from "./glass-surface";
 import {
   StyleSheet,
+  KeyboardAvoidingView,
+  Platform,
   ActivityIndicator,
   Pressable,
   ScrollView,
@@ -36,7 +40,7 @@ import { tokens } from "@/theme/tokens";
 import { Brand } from "./Brand";
 export function T({
   children,
-  size = 16,
+  size = 15,
   muted = false,
   bold = false,
   original = false,
@@ -101,7 +105,10 @@ export function Screen({
   const c = useTheme();
   const insets = useSafeAreaInsets();
   return (
-    <View style={{ flex: 1, backgroundColor: c.bg }}>
+    <KeyboardAvoidingView
+      behavior={Platform.OS === "ios" ? "padding" : undefined}
+      style={{ flex: 1, backgroundColor: c.bg }}
+    >
       <ScrollView
         ref={scrollRef}
         style={{ flex: 1 }}
@@ -109,7 +116,7 @@ export function Screen({
         contentContainerStyle={[
           {
             paddingTop: Math.max(insets.top, 20),
-            paddingHorizontal: 20,
+            paddingHorizontal: 24,
             paddingBottom: 32,
             gap: 20,
             width: "100%",
@@ -119,6 +126,7 @@ export function Screen({
           style,
         ]}
         keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="on-drag"
       >
         {children}
       </ScrollView>
@@ -140,7 +148,7 @@ export function Screen({
           {footer}
         </View>
       ) : null}
-    </View>
+    </KeyboardAvoidingView>
   );
 }
 export function Row({
@@ -193,11 +201,13 @@ export function Button({
             ? c.dark
               ? "#55565C"
               : "#BCBCC0"
-            : secondary
-              ? c.surface
-              : c.primary,
+            : Platform.OS === "ios"
+              ? "transparent"
+              : secondary
+                ? c.surface
+                : c.primary,
           borderRadius: 999,
-          minHeight: 56,
+          minHeight: 52,
           paddingHorizontal: 18,
           paddingVertical: 15,
           alignItems: "center",
@@ -205,6 +215,17 @@ export function Button({
           opacity: 1,
         }}
       >
+        {!disabled ? (
+          <GlassSurface
+            tintColor={secondary ? undefined : c.primary}
+            style={{
+              position: "absolute",
+              inset: 0,
+              borderRadius: 999,
+              pointerEvents: "none",
+            }}
+          />
+        ) : null}
         <Row>
           {Icon ? (
             <Icon size={20} color={secondary ? c.text : c.onPrimary} />
@@ -245,18 +266,28 @@ export function IconButton({
         width: 44,
         height: 44,
         borderRadius: 15,
-        backgroundColor: active ? c.soft : c.surface,
+        backgroundColor: "transparent",
         alignItems: "center",
         justifyContent: "center",
         opacity: pressed ? 0.6 : 1,
       })}
     >
-      <Icon
-        size={21}
-        color={active ? c.primary : c.text}
-        fill={active ? c.primary : "none"}
-        strokeWidth={1.8}
-      />
+      <GlassSurface
+        style={{
+          width: 44,
+          height: 44,
+          borderRadius: 22,
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <Icon
+          size={21}
+          color={active ? c.primary : c.text}
+          fill={active ? c.primary : "none"}
+          strokeWidth={1.8}
+        />
+      </GlassSurface>
     </Pressable>
   );
 }
@@ -299,30 +330,58 @@ export function Chip({
 export function Field(props: TextInputProps) {
   const c = useTheme();
   const t = useTranslate();
+  const [visible, setVisible] = useState(false);
   return (
-    <TextInput
-      placeholderTextColor={c.muted}
-      {...props}
-      placeholder={props.placeholder ? t(props.placeholder) : undefined}
-      accessibilityLabel={
-        props.accessibilityLabel ? t(props.accessibilityLabel) : undefined
-      }
+    <View
       style={[
-        {
-          borderWidth: 1,
-          borderColor: c.border,
-          borderRadius: 14,
-          minHeight: 52,
-          paddingHorizontal: 15,
-          paddingVertical: 12,
-          color: c.text,
-          backgroundColor: c.surface,
-          fontSize: 15,
-          fontFamily: "SFRegular",
-        },
-        props.style,
+        { flex: StyleSheet.flatten(props.style)?.flex },
+        props.secureTextEntry ? { position: "relative" } : undefined,
       ]}
-    />
+    >
+      <TextInput
+        placeholderTextColor={c.muted}
+        {...props}
+        secureTextEntry={props.secureTextEntry && !visible}
+        placeholder={props.placeholder ? t(props.placeholder) : undefined}
+        accessibilityLabel={
+          props.accessibilityLabel ? t(props.accessibilityLabel) : undefined
+        }
+        style={[
+          {
+            borderWidth: 1,
+            borderColor: c.border,
+            borderRadius: 14,
+            minHeight: 52,
+            paddingHorizontal: 15,
+            paddingVertical: 12,
+            color: c.text,
+            backgroundColor: c.surface,
+            fontSize: 15,
+            fontFamily: "SFRegular",
+          },
+          props.style,
+          props.secureTextEntry ? { paddingRight: 54 } : undefined,
+        ]}
+      />
+      {props.secureTextEntry ? (
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={visible ? "Hide password" : "Show password"}
+          onPress={() => setVisible((v) => !v)}
+          style={{
+            position: "absolute",
+            right: 4,
+            top: 4,
+            bottom: 4,
+            width: 44,
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <AppIcon name={visible ? "visible" : "invisible"} size={22} />
+        </Pressable>
+      ) : null}
+    </View>
   );
 }
 export function SearchBar(props: TextInputProps) {

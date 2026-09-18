@@ -5,10 +5,7 @@
     "version": "0.3.0",
     "orientation": "portrait",
     "icon": "./assets/images/icons/full/lightmode.png",
-    "scheme": [
-      "kitchen-ai",
-      "cook"
-    ],
+    "scheme": ["kitchen-ai", "cook"],
     "userInterfaceStyle": "automatic",
     "ios": {
       "supportsTablet": true,
@@ -18,6 +15,7 @@
       }
     },
     "android": {
+      "softwareKeyboardLayoutMode": "resize",
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/icons/full/lightmode.png",
         "backgroundColor": "#171719"

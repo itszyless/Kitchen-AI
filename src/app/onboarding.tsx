@@ -1,3 +1,5 @@
+import { CountryPicker } from "@/components/country-picker";
+import { Choice } from "@/components/ui";
 import asset0 from "../../assets/images/mockups/mockup_v1.png";
 import asset1 from "../../assets/images/icons/apps/app_store.png";
 import asset2 from "../../assets/images/icons/apps/play_store.png";
@@ -70,7 +72,7 @@ export default function Onboarding() {
     MoreHorizontal,
   ];
   const [position, setPosition] = useState(0);
-  const order = [0, 10, 11, 7, 9, 2, 1, 3, 4, 5, 6, 8, 12];
+  const order = [0, 10, 11, 7, 9, 2, 1, 3, 4, 5, 6, 8, 13, 12];
   const step = order[position];
   const [backward, setBackward] = useState(false);
   const scroll = useRef<ScrollView>(null);
@@ -102,7 +104,8 @@ export default function Onboarding() {
   const done = () => {
     acquisition.submit(p);
     finish();
-    if (supportsTimerNotifications) router.push({ pathname: "/notifications", params: { onboarding: "1" } });
+    if (supportsTimerNotifications)
+      router.push({ pathname: "/notifications", params: { onboarding: "1" } });
     else router.push({ pathname: "/auth", params: { mode: "register" } });
   };
   const titles = [
@@ -119,6 +122,7 @@ export default function Onboarding() {
     "What brings you to the kitchen?",
     "What gets in the way?",
     "Your kitchen, your way.",
+    "What would you like to share?",
   ];
   const subtitles = [
     "Turn the food you have into a meal you’ll love.",
@@ -134,6 +138,7 @@ export default function Onboarding() {
     "Choose what matters most to you.",
     "Let’s make everyday cooking easier.",
     "Your preferences are ready. You can change them in settings.",
+    "Choose what appears on your profile. You can change each setting later.",
   ];
   const options =
     step === 2
@@ -418,6 +423,44 @@ export default function Onboarding() {
                 ))}
               </View>
             ) : null}
+            {step === 13 ? (
+              <View style={{ gap: 14 }}>
+                <Choice
+                  title="Yes, show my country and food preferences"
+                  body="Includes the allergies you entered."
+                  selected={
+                    answered.includes(13) &&
+                    p.showCountry === true &&
+                    p.showDiet === true &&
+                    p.showAllergies === true
+                  }
+                  onPress={() =>
+                    update({
+                      showCountry: true,
+                      showDiet: true,
+                      showAllergies: true,
+                    })
+                  }
+                />
+                <Choice
+                  title="No, keep these private"
+                  body="Your recipe preferences still work."
+                  selected={
+                    answered.includes(13) &&
+                    p.showCountry === false &&
+                    p.showDiet === false &&
+                    p.showAllergies === false
+                  }
+                  onPress={() =>
+                    update({
+                      showCountry: false,
+                      showDiet: false,
+                      showAllergies: false,
+                    })
+                  }
+                />
+              </View>
+            ) : null}
             {step === 12 ? (
               <View
                 style={{
@@ -611,54 +654,10 @@ export default function Onboarding() {
               />
             ) : null}
             {step === 6 ? (
-              <View
-                style={{
-                  flex: 1,
-                  justifyContent: "center",
-                  gap: 10,
-                  paddingVertical: 16,
-                }}
-              >
-                {[
-                  ["AT", "Austria"],
-                  ["DE", "Germany"],
-                  ["US", "United States"],
-                  ["GB", "United Kingdom"],
-                  ["FR", "France"],
-                  ["IT", "Italy"],
-                ].map(([code, name]) => (
-                  <Pressable
-                    key={code}
-                    accessibilityRole="radio"
-                    accessibilityState={{
-                      checked: answered.includes(6) && p.country === code,
-                    }}
-                    onPress={() => update({ country: code })}
-                    style={{
-                      backgroundColor:
-                        answered.includes(6) && p.country === code
-                          ? c.primary
-                          : c.surface,
-                      padding: 16,
-                      borderRadius: 16,
-                    }}
-                  >
-                    <T
-                      style={{
-                        color:
-                          answered.includes(6) && p.country === code
-                            ? c.onPrimary
-                            : c.text,
-                      }}
-                    >
-                      {String.fromCodePoint(
-                        ...[...code].map((char) => 127397 + char.charCodeAt(0)),
-                      )}{" "}
-                      {name}
-                    </T>
-                  </Pressable>
-                ))}
-              </View>
+              <CountryPicker
+                value={answered.includes(6) ? p.country : undefined}
+                onChange={(country) => update({ country })}
+              />
             ) : null}
           </>
         )}
